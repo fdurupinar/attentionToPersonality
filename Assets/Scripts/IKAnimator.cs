@@ -5,7 +5,9 @@ using RootMotion.FinalIK;
 using UnityEngine;
 
 
-
+/// <summary>
+/// Controls IK targets
+/// </summary>
 
 public class IKAnimator : MonoBehaviour {
 
@@ -113,7 +115,6 @@ public class IKAnimator : MonoBehaviour {
 #endif
 
 
-
         _animInfo = GetComponent<AnimationInfo>();
 
         _fbIk = GetComponent<FullBodyBipedIK>();
@@ -128,9 +129,6 @@ public class IKAnimator : MonoBehaviour {
 
 
         _torso = GetComponent<TorsoController>();
-
-
-
 
         Reset();
 
@@ -280,10 +278,6 @@ public class IKAnimator : MonoBehaviour {
         ComputeTargets(keyInd, lt, T);
 
 
-        //HACK!!
-        //if (_animInfo.AnimName.Contains("Pick") || _animInfo.AnimName.Contains("pick") || _animInfo.AnimName.Contains("Point") || _animInfo.AnimName.Contains("point")) 
-        //if (_animInfo.AnimName.Contains("Point") || _animInfo.AnimName.Contains("point") || _animInfo.AnimName.Contains("Guard") || _animInfo.AnimName.Contains("Customer"))
-        //  BendArms();
 
         //To prevent comical affects during overshoot
      //   if (T > 1 && (_animInfo.AnimName.ToUpper().Contains("WALK") || _animInfo.AnimName.ToUpper().Contains("SALSA") || _animInfo.AnimName.ToUpper().Contains("HIGHFIVE")))

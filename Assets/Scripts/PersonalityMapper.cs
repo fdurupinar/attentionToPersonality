@@ -52,7 +52,9 @@ public enum MotionCoef {
 
 }
 
-
+/// <summary>
+/// Maps personality to motion parameters via Drives
+/// </summary>
 public class PersonalityMapper {
 
     private MotionCoef _minMotionCoefs;
@@ -301,7 +303,7 @@ public class PersonalityMapper {
 
             if (i == (int)MotionCoef.Speed) {
                 if (p.GetComponent<AnimationInfo>().AnimName.ToUpper().Contains("CONVERS"))
-                    p.GetComponent<AnimationInfo>().AnimSpeed = param.Constrain(0.7f, 0.8f);
+                    p.GetComponent<AnimationInfo>().AnimSpeed = param.Clamp(0.7f, 0.8f);
                 else if (p.GetComponent<AnimationInfo>().AnimName.ToUpper().Contains("FOOTBALL"))
                     p.GetComponent<AnimationInfo>().AnimSpeed = 0.7f;
                 else if (p.GetComponent<AnimationInfo>().AnimName.ToUpper().Contains("WALK"))
@@ -309,40 +311,40 @@ public class PersonalityMapper {
                 else
                     p.GetComponent<AnimationInfo>().AnimSpeed = param;
                // else
-                 //   p.GetComponent<AnimationInfo>().AnimSpeed = param.Constrain(0.5f, 1f);
+                 //   p.GetComponent<AnimationInfo>().AnimSpeed = param.Clamp(0.5f, 1f);
             }
 
             else if (i == (int)MotionCoef.V0)
-                p.GetComponent<AnimationInfo>().V0 = param.Constrain(0, 1);
+                p.GetComponent<AnimationInfo>().V0 = param.Clamp(0, 1);
             else if (i == (int)MotionCoef.V1)
-                p.GetComponent<AnimationInfo>().V1 = param.Constrain(0, 1);
+                p.GetComponent<AnimationInfo>().V1 = param.Clamp(0, 1);
             else if (i == (int)MotionCoef.Ti)
-                p.GetComponent<AnimationInfo>().Ti = (0.5f - (0.5f - param) / timeScale).Constrain(0, 1); //need to scale //param.Constrain(0, 1);
+                p.GetComponent<AnimationInfo>().Ti = (0.5f - (0.5f - param) / timeScale).Clamp(0, 1); //need to scale //param.Clamp(0, 1);
             else if (i == (int)MotionCoef.Texp)
-                p.GetComponent<AnimationInfo>().Texp = param.Constrain(0);
+                p.GetComponent<AnimationInfo>().Texp = param.Clamp(0);
             else if (i == (int)MotionCoef.GoalThreshold) {
                 //determines goal frequency
                 //Adjust with new scale
 
-                p.GetComponent<AnimationInfo>().GoalThreshold = param.Constrain(0f, 1f);
+                p.GetComponent<AnimationInfo>().GoalThreshold = param.Clamp(0f, 1f);
 
 
                 p.GetComponent<AnimationInfo>().InitKeyPoints();
             }
 
             else if (i == (int)MotionCoef.TVal) {
-                p.GetComponent<AnimationInfo>().Tval = param.Constrain(-1, 1);
+                p.GetComponent<AnimationInfo>().Tval = param.Clamp(-1, 1);
                 p.GetComponent<AnimationInfo>().InitInterpolators(p.GetComponent<AnimationInfo>().Tval,
                                                                       p.GetComponent<AnimationInfo>().Continuity, 0);
             }
 
             else if (i == (int)MotionCoef.T0)
-                p.GetComponent<AnimationInfo>().T0 = (param / timeScale).Constrain(0, p.GetComponent<AnimationInfo>().Ti);
+                p.GetComponent<AnimationInfo>().T0 = (param / timeScale).Clamp(0, p.GetComponent<AnimationInfo>().Ti);
             else if (i == (int)MotionCoef.T1)
-                p.GetComponent<AnimationInfo>().T1 = (1 - (1 - param) / timeScale).Constrain(p.GetComponent<AnimationInfo>().Ti, 1); //need to scale 
+                p.GetComponent<AnimationInfo>().T1 = (1 - (1 - param) / timeScale).Clamp(p.GetComponent<AnimationInfo>().Ti, 1); //need to scale 
 
             else if (i == (int)MotionCoef.HrMag)
-                p.GetComponent<IKAnimator>().HrMag = param.Constrain(-0.8f, 0.8f);
+                p.GetComponent<IKAnimator>().HrMag = param.Clamp(-0.8f, 0.8f);
             else if (i == (int)MotionCoef.HSign) {
                 if (param < 0) param = -1;
                 else if (param > 0) param = 1;
@@ -350,86 +352,86 @@ public class PersonalityMapper {
                 //hrmag comes first                 
             }
             else if (i == (int)MotionCoef.HfMag)
-                p.GetComponent<IKAnimator>().HfMag = (param * timeScale2).Constrain(0);
+                p.GetComponent<IKAnimator>().HfMag = (param * timeScale2).Clamp(0);
             else if (i == (int)MotionCoef.SquashMag)
-                p.GetComponent<IKAnimator>().SquashMag = param.Constrain(0, 1);
+                p.GetComponent<IKAnimator>().SquashMag = param.Clamp(0, 1);
             else if (i == (int)MotionCoef.WbMag)
-                p.GetComponent<FlourishAnimator>().WbMag = param.Constrain(-1, 1);
+                p.GetComponent<FlourishAnimator>().WbMag = param.Clamp(-1, 1);
             else if (i == (int)MotionCoef.WxMag)
-                p.GetComponent<FlourishAnimator>().WxMag = param.Constrain(-1.8f, 1.8f);
+                p.GetComponent<FlourishAnimator>().WxMag = param.Clamp(-1.8f, 1.8f);
             else if (i == (int)MotionCoef.WtMag)
-                p.GetComponent<FlourishAnimator>().WtMag = param.Constrain(0, 1.4f);
+                p.GetComponent<FlourishAnimator>().WtMag = param.Clamp(0, 1.4f);
             else if (i == (int)MotionCoef.WfMag)
-                p.GetComponent<FlourishAnimator>().WfMag = (param * timeScale2).Constrain(0);
+                p.GetComponent<FlourishAnimator>().WfMag = (param * timeScale2).Clamp(0);
             else if (i == (int)MotionCoef.EtMag)
-                p.GetComponent<FlourishAnimator>().EtMag = param.Constrain(0, 1.4f);
+                p.GetComponent<FlourishAnimator>().EtMag = param.Clamp(0, 1.4f);
             else if (i == (int)MotionCoef.EfMag)
-                p.GetComponent<FlourishAnimator>().EfMag = (param * timeScale2).Constrain(0);
+                p.GetComponent<FlourishAnimator>().EfMag = (param * timeScale2).Clamp(0);
             else if (i == (int)MotionCoef.DMag)
-                p.GetComponent<FlourishAnimator>().DMag = param.Constrain(0, 1.4f);
+                p.GetComponent<FlourishAnimator>().DMag = param.Clamp(0, 1.4f);
             else if (i == (int)MotionCoef.TrMag)
-                p.GetComponent<FlourishAnimator>().TrMag = param.Constrain(-1, 1);
+                p.GetComponent<FlourishAnimator>().TrMag = param.Clamp(-1, 1);
             else if (i == (int)MotionCoef.TfMag)
-                p.GetComponent<FlourishAnimator>().TfMag = (param * timeScale2).Constrain(0); //normalize to the animation range
+                p.GetComponent<FlourishAnimator>().TfMag = (param * timeScale2).Clamp(0); //normalize to the animation range
 
             else if (i == (int)MotionCoef.EncSpr0)
-                p.GetComponent<IKAnimator>().EncSpr[0] = param.Constrain(-1, 1);
+                p.GetComponent<IKAnimator>().EncSpr[0] = param.Clamp(-1, 1);
             else if (i == (int)MotionCoef.SinRis0)
-                p.GetComponent<IKAnimator>().SinRis[0] = param.Constrain(-1, 1);
+                p.GetComponent<IKAnimator>().SinRis[0] = param.Clamp(-1, 1);
             else if (i == (int)MotionCoef.RetAdv0)
-                p.GetComponent<IKAnimator>().RetAdv[0] = param.Constrain(-1, 1);
+                p.GetComponent<IKAnimator>().RetAdv[0] = param.Clamp(-1, 1);
             else if (i == (int)MotionCoef.EncSpr1)
-                p.GetComponent<IKAnimator>().EncSpr[1] = param.Constrain(-1, 1);
+                p.GetComponent<IKAnimator>().EncSpr[1] = param.Clamp(-1, 1);
             else if (i == (int)MotionCoef.SinRis1)
-                p.GetComponent<IKAnimator>().SinRis[1] = param.Constrain(-1, 1);
+                p.GetComponent<IKAnimator>().SinRis[1] = param.Clamp(-1, 1);
             else if (i == (int)MotionCoef.RetAdv1)
-                p.GetComponent<IKAnimator>().RetAdv[1] = param.Constrain(-1, 1);
+                p.GetComponent<IKAnimator>().RetAdv[1] = param.Clamp(-1, 1);
             else if (i == (int)MotionCoef.EncSpr2)
-                p.GetComponent<IKAnimator>().EncSpr[2] = param.Constrain(-1, 1);
+                p.GetComponent<IKAnimator>().EncSpr[2] = param.Clamp(-1, 1);
             else if (i == (int)MotionCoef.SinRis2)
-                p.GetComponent<IKAnimator>().SinRis[2] = param.Constrain(-1, 1);
+                p.GetComponent<IKAnimator>().SinRis[2] = param.Clamp(-1, 1);
             else if (i == (int)MotionCoef.RetAdv2)
-                p.GetComponent<IKAnimator>().RetAdv[2] = param.Constrain(-1, 1);
+                p.GetComponent<IKAnimator>().RetAdv[2] = param.Clamp(-1, 1);
 
 
             else if (i == (int)MotionCoef.Continuity) {
-                p.GetComponent<AnimationInfo>().Continuity = param.Constrain(-1, 1);
+                p.GetComponent<AnimationInfo>().Continuity = param.Clamp(-1, 1);
                 p.GetComponent<AnimationInfo>().InitInterpolators(p.GetComponent<AnimationInfo>().Tval,
                                                                       p.GetComponent<AnimationInfo>().Continuity, 0);
             }
 
 
             else if (i == (int)MotionCoef.Arm0X) {
-                p.GetComponent<AnimationInfo>().Hor = param.Constrain(-1, 1);
+                p.GetComponent<AnimationInfo>().Hor = param.Clamp(-1, 1);
                 p.GetComponent<AnimationInfo>().UpdateKeypointsByShape(0); //Update keypoints                 
             }
             else if (i == (int)MotionCoef.Arm0Y) {
-                p.GetComponent<AnimationInfo>().Ver = param.Constrain(-1, 1);
+                p.GetComponent<AnimationInfo>().Ver = param.Clamp(-1, 1);
                 p.GetComponent<AnimationInfo>().UpdateKeypointsByShape(0); //Update keypoints
 
             }
             else if (i == (int)MotionCoef.Arm0Z) {
-                p.GetComponent<AnimationInfo>().Sag = param.Constrain(-1, 1);
+                p.GetComponent<AnimationInfo>().Sag = param.Clamp(-1, 1);
                 p.GetComponent<AnimationInfo>().UpdateKeypointsByShape(0); //Update keypoints
 
             }
             else if (i == (int)MotionCoef.Arm1X) {
-                p.GetComponent<AnimationInfo>().Hor = param.Constrain(-1, 1);
+                p.GetComponent<AnimationInfo>().Hor = param.Clamp(-1, 1);
                 p.GetComponent<AnimationInfo>().UpdateKeypointsByShape(1); //Update keypoints
             }
             else if (i == (int)MotionCoef.Arm1Y) {
-                p.GetComponent<AnimationInfo>().Ver = param.Constrain(-1, 1);
+                p.GetComponent<AnimationInfo>().Ver = param.Clamp(-1, 1);
                 p.GetComponent<AnimationInfo>().UpdateKeypointsByShape(1); //Update keypoints
             }
 
             else if (i == (int)MotionCoef.Arm1Z) {
-                p.GetComponent<AnimationInfo>().Sag = param.Constrain(-1, 1);
+                p.GetComponent<AnimationInfo>().Sag = param.Clamp(-1, 1);
                 p.GetComponent<AnimationInfo>().UpdateKeypointsByShape(1); //Update keypoints
 
             }
 
             else if (i == (int)MotionCoef.ShapeTi) {
-                p.GetComponent<IKAnimator>().ShapeTi = param.Constrain(0, 1);
+                p.GetComponent<IKAnimator>().ShapeTi = param.Clamp(0, 1);
 
             }
 
@@ -448,7 +450,7 @@ public class PersonalityMapper {
 
             }
             else if (i == (int)MotionCoef.SquashF) {
-                p.GetComponent<IKAnimator>().SquashF = (param * timeScale2).Constrain(0);
+                p.GetComponent<IKAnimator>().SquashF = (param * timeScale2).Clamp(0);
 
             }
         }

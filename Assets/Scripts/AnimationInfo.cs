@@ -52,8 +52,12 @@ public enum EEType {
 public class MyKeyframe {
    public float time { get; set; }
 }
- 
 
+
+/// <summary>
+/// Finds the joint positions and rotations at the keyframes
+///
+/// </summary>
 public class AnimationInfo : MonoBehaviour {
 
     public int StartKey, EndKey; //if animation is divided into parts, start and end keys define the boundaries of the animation sequence
@@ -260,9 +264,7 @@ public class AnimationInfo : MonoBehaviour {
         Tval = 0f;
         Continuity = 0f;
         T0 = 0f;
-        T1 = 1f;
-
-        
+        T1 = 1f;        
 
     }
     
@@ -272,7 +274,6 @@ public class AnimationInfo : MonoBehaviour {
         AnimName = aName;
         
         GetComponent<Animation>().clip = GetComponent<Animation>()[AnimName].clip;
-
 
         
 		Fps = GetComponent<Animation>()[AnimName].clip.frameRate;
@@ -372,7 +373,9 @@ public class AnimationInfo : MonoBehaviour {
         }
         animation.Play(AnimName);
 	
-      /*  Keys = new KeyInfo[frames.Length];
+      /*
+        //Find keys based on bounding boxes
+        Keys = new KeyInfo[frames.Length];
 
 	    KeyExtractor.Reset();
         foreach (Keyframe f in frames) {
@@ -389,6 +392,8 @@ public class AnimationInfo : MonoBehaviour {
 	    List <int> keyInds = KeyExtractor.ExtractKeys();
 	    Debug.Log(keyInds.Count);
        */
+
+        //OR read prerecorded keys
         Keys = new KeyInfo[frames.Length];
         for (int i = 0; i < frames.Length; i++) {
 
@@ -396,28 +401,17 @@ public class AnimationInfo : MonoBehaviour {
 
             animation[AnimName].enabled = true;
 
-         
-
             animation[AnimName].time = frames[i].time;
             Keys[i].Time = animation[AnimName].time;
 
-
-
-            
-
-
            // int frameInd = keyInds[i];
-
            // Keys[i].FrameNo = frameInd;
-
          //   animation[AnimName].time = frames[frameInd].time;
 
            
             animation[AnimName].enabled = true;
-
             
-            animation.Sample();
-         
+            animation.Sample();        
 
             Keys[i].IsCurve = false;
             //body chain and transformation arrays for the specific animation
@@ -450,11 +444,7 @@ public class AnimationInfo : MonoBehaviour {
         else
             AssignGoalKeys((int)EEType.RightHand);
 
-        animation.Stop(AnimName);
-
-            
-        
-
+        animation.Stop(AnimName);                 
 
 #else
 
@@ -471,32 +461,25 @@ public class AnimationInfo : MonoBehaviour {
 
 
         GetComponent<Animation>().Play(AnimName);
-        //Keys = new KeyInfo[FrameCnt];
+
+
         Keys = new KeyInfo[frames.Length];
+        //Sample at the key points
         for (int i = 0; i < frames.Length; i++) {
             Keys[i] = new KeyInfo();
 
-            GetComponent<Animation>()[AnimName].enabled = true;
-
-    //        animation[AnimName].time = i /(float) Fps;    
+            GetComponent<Animation>()[AnimName].enabled = true;    
 
             GetComponent<Animation>()[AnimName].time = frames[i].time;
             Keys[i].Time = GetComponent<Animation>()[AnimName].time;
 
         	
-        
-
             GetComponent<Animation>().Sample();
 
             Keys[i].IsCurve = false;
 
-            
-
-
             //Keys[i].FrameNo = i; //take all keys
             
-
-
             //body chain and transformation arrays for the specific animation
 
             BodyChainTorso = _torso.BodyChainToArray(_torso.Root); //needs to be updated for each keyframe
@@ -530,109 +513,7 @@ public class AnimationInfo : MonoBehaviour {
         GetComponent<Animation>().Stop(AnimName);
 
 #endif
-
-        /*
-        GoalKeys.Clear();
-        GoalKeys.Add(0);
-        GoalKeys.Add(Keys.Length - 1);
-        */
-
-       // int goalKeyInd = 0;
-       // int curveKeyInd = 0;
-        
-	    /*
-#if EDITORMODE	  
-
-        //forearm keys are fewer in number, looks better with  EMOTE
-        //AnimationCurve xCurve = AnimationUtility.GetEditorCurve(animation[AnimName].clip, torso.BodyPath[(int)BodyPart.ElbowR], typeof(Transform), "m_LocalRotation.x");
-        AnimationCurve xCurve = AnimationUtility.GetEditorCurve(animation[AnimName].clip, _torso.BodyPath[(int)BodyPart.WristR], typeof(Transform), "m_LocalRotation.x");
-        //AnimationCurve xCurve = AnimationUtility.GetEditorCurve(animation[AnimName].clip, _torso.BodyPath[(int)BodyPart.PelvisR], typeof(Transform), "m_LocalRotation.x");
-
-        Keyframe[] frames = xCurve.keys;
-        
-        using (StreamWriter sw = new StreamWriter("keyframes_" + AnimName + ".txt")) {
-            sw.WriteLine("MyKeyTimes = new float" + "[" + frames.Length + "];");
-            foreach (Keyframe kf in frames) {
-                sw.WriteLine("MyKeyTimes[i++]  = " + kf.time + "f; ");                
-            }
-        }
-        
-	    
-        
-#elif !EDITORMODE        
-  		AssignKeyFrames();
-
-        Keyframe[] frames = new Keyframe[MyKeyTimes.Length];
-        for (int i = 0; i < MyKeyTimes.Length; i++) {
-            frames[i] = new Keyframe();           
-            frames[i].time = MyKeyTimes[i];           
-        }
-      
-#endif
-         
-        
-
-        AssignGoalKeys(frames);
-
-        animation.Play(AnimName);
-        int goalKeyInd = 0;
-        int curveKeyInd = 0;
-	
-		Keys = new KeyInfo[frames.Length ];
-		for(int i = 0; i < frames.Length; i++) {
-            animation[AnimName].enabled = true;
-  
-        animation[AnimName].time = frames[i].time;
-
-
-        animation.Sample();	
-		Keys[i] = new KeyInfo();			
-        Keys[i].Time = animation[AnimName].time;
-
-        if(i == GoalKeys[goalKeyInd]) {            
-            Keys[i].IsGoal = true;
-            goalKeyInd++;
-        }
-        else if(i < GoalKeys[goalKeyInd]) 
-            Keys[i].IsGoal = false;
-
-        if (i == CurveKeys[curveKeyInd]) {
-            Keys[i].IsCurve = true;
-            curveKeyInd++;
-        }
-        else
-            Keys[i].IsCurve = false;
-
-        if (Keys[i].FrameNo >= FrameCnt) {                    
-            Keys[i].FrameNo = FrameCnt - 1;
-        }
-
-
-            
-        //body chain and transformation arrays for the specific animation
-        
-        
-		BodyChainTorso = _torso.BodyChainToArray(_torso.Root); //needs to be updated for each keyframe
-        Keys[i].BodyPos = _torso.BodyPosArr(BodyChainTorso);
-        Keys[i].BodyRot = _torso.BodyRotArr(BodyChainTorso);
-        Keys[i].BodyLocalPos = _torso.BodyLocalPosArr(BodyChainTorso);
-        Keys[i].BodyLocalRot = _torso.BodyLocalRotArr(BodyChainTorso);
-
-		Keys[i].BodyVel = new Vector3[BodyChainTorso.Count];
-		
-            for(int ind = 0; ind < 2; ind++) {
-                Keys[i].ShoulderPos[ind] = Keys[i].ShoulderPosOrig[ind] = _torso.Shoulder[ind].position;
-                Keys[i].EePos[ind] = Keys[i].EePosOrig[ind] = _torso.Wrist[ind].position;
-                Keys[i].RootForward = _torso.Root.forward;
-
-            }
-		    
-        }
-			
-	
-        animation.Stop(AnimName);
-
-        */
+       
 
 	}
     

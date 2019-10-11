@@ -3,7 +3,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-
+/// <summary>
+/// Controls arm flourishes and torso rotations
+/// </summary>
 public class FlourishAnimator : MonoBehaviour {
     public List<Vector3> HandLPrev;
     public List<Vector3> HandRPrev;
@@ -166,30 +168,7 @@ public class FlourishAnimator : MonoBehaviour {
 
            
        }
-        
-        //if (LoopPlayCount == 0) {
-        //    if (_animInfo.CurrKeyInd == 0)
-        //        pos1 = _torso.Root.position;
-        //    if (_animInfo.CurrKeyInd == (_animInfo.Keys.Length - 2)) {
-        //        pos2 = _torso.Root.position - pos1;
-
-        //    }
-        //}
-
-
-
-        //if (_animInfo.AnimName.ToUpper().Contains("WALK") && _animInfo.IsContinuous) {
-        //     //translate body
-
-        //    _torso.Root.position += pos2 * LoopPlayCount;
-        //    Debug.Log(pos2 * (LoopPlayCount));
-        //    if (animation.isPlaying && _animInfo.CurrKeyInd == _animInfo.Keys.Length - 2) {
-        //        LoopPlayCount++;
-
-        //    }
-
-
-
+              
 
 
 #if DEBUGMODE

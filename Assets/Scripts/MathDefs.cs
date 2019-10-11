@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
+/// <summary>
+/// Helper functions
+/// </summary>
 public static class MathDefs  {
 	
 	private static System.Random rand = new System.Random();
@@ -66,7 +69,7 @@ public static class MathDefs  {
         return new Vector3(a, b, c);
     }
   
-    public static float Constrain(this float value, float min, float max) {
+    public static float Clamp(this float value, float min, float max) {
         if (value < min)
             value = min;
         if (value > max)
@@ -76,12 +79,25 @@ public static class MathDefs  {
         return result;
     }
 
-    public static float Constrain(this float value, float min) {
+    public static float Clamp(this float value, float min) {
         if (value < min)
             value = min;
         float result = value;
 
         return result;
+    }
+
+    /// <summary>
+    /// Applies Sigmoid function to map between 0 and 1 then maps into [min max]
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="min"></param>
+    /// <param name="max"></param>
+    /// <returns></returns>
+    public static float Constrain(this float value, float min, float max) {
+        float sig = 1f / (1f + Mathf.Exp(-value));
+
+        return sig * (max - min) + min;
     }
 
 

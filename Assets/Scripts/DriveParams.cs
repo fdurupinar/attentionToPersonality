@@ -5,10 +5,12 @@ using System.Collections;
 using System.IO;
 
 
+/// <summary>
+/// Class to keep and update motion parameter values for each of the 32 Drives
+/// </summary>
 public class DriveParams {
-    public string Info = "waiting.. waiting";
 
-
+    const string driveFileName = "Assets/Resources/drives.txt";
 
     //Timing
     public  float Speed = 1f;
@@ -59,15 +61,12 @@ public class DriveParams {
     public  float ShapeTi = 0f;
 
     
-    
-
-    public bool DrivesAchieved = false;
     //Arm shape for drives
     public  Vector3[] Arm = new Vector3[2];
 
     public DriveParams() {
         ResetDriveParameters();
-        DrivesAchieved = false;
+    
     }
 
     public void ResetDriveParameters() {
@@ -116,11 +115,8 @@ public class DriveParams {
 
 
     public void ReadValuesDrives(int driveInd) {
-        string fileName = "drivesFunda.txt";
-        StreamReader sr = new StreamReader(fileName);
-
-
-        string[] content = File.ReadAllLines(fileName);
+        
+        string[] content = File.ReadAllLines(driveFileName);
 
         String[] tokens = content[driveInd + 1].Split('\t');
 
@@ -169,11 +165,6 @@ public class DriveParams {
         ShapeTi = float.Parse(tokens[i++]);        
         GoalThreshold = float.Parse(tokens[i++]);
 
-        DrivesAchieved = true;
-        sr.Close();
-
     }
-
-
     
 }

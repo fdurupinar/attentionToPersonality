@@ -32,7 +32,9 @@ public enum BodyPart {
 
 
 
-
+/// <summary>
+/// Stores and resets joint position, rotation and hierarchy information
+/// </summary>
 [System.Serializable]
 public class TorsoController : MonoBehaviour {
 
