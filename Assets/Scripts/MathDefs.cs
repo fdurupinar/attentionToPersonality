@@ -258,4 +258,43 @@ public static class MathDefs  {
         point = dir + pivot; // calculate rotated point
         return point; // return it
     }
+
+
+    //Converts a decimal N into ternary format, but does not add 0s
+    public static List<int> convertToNarySmall(int number, int N) {
+
+        // Base case  
+        if(number == 0) {
+            List<int> ternary = new List<int>();
+
+            return ternary;
+        }
+
+        // Finding the remainder  
+        // when N is divided by N  
+        int x = number % N;
+        number /= N;
+        if(x < 0)
+            number += 1;
+
+        // Recursive function to  
+        // call the function for  
+        // the integer division  
+        // of the value number/N
+        List<int> tSmall = convertToNarySmall(number, N);
+
+        tSmall.Add(x);
+
+
+        return tSmall;
+    }
+
+
+    //Converts a decimal number into "N"ary format and adds 0s to the front to fill up digits
+    public static List<int> convertToNary(int number, int N, int digits) {
+        List<int> nary = convertToNarySmall(number, N);
+        while(nary.Count < digits)
+            nary.Insert(0, 0);
+        return nary;
+    }
 }

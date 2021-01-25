@@ -72,15 +72,15 @@ public class DriveParams {
     public void ResetDriveParameters() {
         Speed = 1f;
         Tval = 0;
-        V0 = 0;
-        V1 = 0;
+        V0 = -1f;
+        V1 = -1f;
         Ti = 0.5f;
+        T0 = 0.0f;
+        T1 = 1f;
         Texp = 1f;
         GoalThreshold = 0f;
         Tval = 0f;
-        Continuity = 0f;
-        T0 = 0.0f;
-        T1 = 1f;
+        Continuity = 0f;        
         TrMag = 0f;
         TfMag = 0f;
         FixedTarget = 0;
@@ -112,11 +112,15 @@ public class DriveParams {
 
     }
 
-
-
     public void ReadValuesDrives(int driveInd) {
+        ReadValuesDrives(driveInd, driveFileName);
+
+    }
+
+
+    public void ReadValuesDrives(int driveInd, string fileName) {
         
-        string[] content = File.ReadAllLines(driveFileName);
+        string[] content = File.ReadAllLines(fileName);
 
         String[] tokens = content[driveInd + 1].Split('\t');
 
@@ -166,5 +170,6 @@ public class DriveParams {
         GoalThreshold = float.Parse(tokens[i++]);
 
     }
+
     
 }

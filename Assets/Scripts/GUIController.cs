@@ -39,10 +39,19 @@ public class GUIController : MonoBehaviour {
     protected void Play(AnimationInfo agent) {
 
         //agent.animation[agent.AnimName].wrapMode = WrapMode.ClampForever;
-        agent.GetComponent<Animation>()[agent.AnimName].wrapMode = WrapMode.Loop;
+        agent.GetComponent<Animation>()[agent.AnimName].wrapMode = WrapMode.Once;//WrapMode.Loop;
         agent.GetComponent<Animation>().Play(agent.AnimName);
         agent.GetComponent<Animation>().enabled = true;
 
+        //capture BVH
+        //agent.GetComponent<BVHRecorder>().capturing = true;
+
+    }
+
+    protected void StopBVHCapturing(AnimationInfo agent) {
+        //stop capturing BVH
+        agent.GetComponent<BVHRecorder>().capturing = false;
+        agent.GetComponent<BVHRecorder>().saveBVH();
     }
 
     protected void StopAnimations(AnimationInfo agent) {
@@ -53,6 +62,9 @@ public class GUIController : MonoBehaviour {
         StopAtFirstFrame(agent);
         PlayAnim(agent); //start the next animation
         StopAtFirstFrame(agent);
+
+        //stop capturing BVH
+        StopBVHCapturing(agent);
     }
 
 

@@ -32,6 +32,11 @@ public enum BodyPart {
 
 
 
+
+
+
+
+
 /// <summary>
 /// Stores and resets joint position, rotation and hierarchy information
 /// </summary>
@@ -75,7 +80,6 @@ public class TorsoController : MonoBehaviour {
 
     public List<Quaternion> BodyLocalRot;
     public List<Vector3> BodyLocalPos;
-
 
 
 
@@ -202,7 +206,8 @@ public class TorsoController : MonoBehaviour {
 
 
 
-
+        
+        
     }
 
 

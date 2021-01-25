@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using UnityEditor;
 #endif
 
+
 [System.Serializable]
 public class KeyInfo  {
 	public int FrameNo;
@@ -38,7 +39,6 @@ public class KeyInfo  {
     public float[] TimeUpdated = new float[2];
 
 
-
 }
 public enum EEType {
     LeftHand,
@@ -63,13 +63,15 @@ public class AnimationInfo : MonoBehaviour {
     public int StartKey, EndKey; //if animation is divided into parts, start and end keys define the boundaries of the animation sequence
     public bool DisableLMA;
     public string CharacterName;
+    
+
     //Timing parameters
     public float T0 = 0f; //EMOTE values
     public float T1 = 1f; //EMOTE values
     public float Texp = 1f;  //Default time exponent
-    public float Ti  = 0.5f; 	 //Inflection point where the movement changes from accelerating to decelerating
-    public float V0; 	 //Start velocity
-    public float V1; 	 //End velocity
+    public float Ti = 0.5f; //0.5f; 	 //Inflection point where the movement changes from accelerating to decelerating
+    public float V0 = -1f; 	 //Start velocity for constant speed
+    public float V1 = -1f; 	 //End velocity for constant speed
     public float Tval;  //Tension	
     
     public float Continuity = 0f;
@@ -81,6 +83,7 @@ public class AnimationInfo : MonoBehaviour {
     public int ExtraGoal; //whether there is an extra goal in the middle
     public int UseCurveKeys;
 
+    
     
     //Shape parameters
     public float Hor = 0f; //[-1 1]
@@ -128,7 +131,7 @@ public class AnimationInfo : MonoBehaviour {
     public float[] MyKeyTimes;
     public KeyframeExtractor KeyExtractor;
 
-    public float GoalThreshold = 0.1f;
+    public float GoalThreshold = 0f; //0.1f; //funda?  why are we using this?
 
 
     public float NormalizedTime;
@@ -224,11 +227,7 @@ public class AnimationInfo : MonoBehaviour {
     public bool AnimationOver() {
         return (Curr >= AnimLength);
     }
-    //To test if animation is playing with the wrapmode = clampforever
-    public bool AnimationSoonOver() {
-        return (Curr >= AnimLength/2f);
-    }
-
+ 
 
 
 
@@ -251,20 +250,19 @@ public class AnimationInfo : MonoBehaviour {
 
         AnimName = AnimNames[0];
 
-
-        IsContinuous = true; //funda
+        IsContinuous = false; //funda
  
     }
 
     public void ResetParameters() {
 
         V0 = V1 = 0f;
-        Ti = 0.5f;
+        Ti = 1f; //0.5f;
         Texp = 1.0f;
         Tval = 0f;
         Continuity = 0f;
         T0 = 0f;
-        T1 = 1f;        
+        T1 = 2f;//1f;        
 
     }
     
@@ -312,12 +310,11 @@ public class AnimationInfo : MonoBehaviour {
     //goals keep the key index, not frame index
     void AssignGoalKeys(int ind) {
 
-
-  
         //Compute end effector velocity
         for (int i = 1; i < Keys.Length-1; i++) {            
                 Keys[i].EeVel[ind] = (Keys[i + 1].EePos[ind] - Keys[i - 1].EePos[ind]) / (Keys[i + 1].Time - Keys[i - 1].Time);
         }
+
         int goalInd = 0;
         GoalKeys.Clear();
         GoalKeys.Add(0);
@@ -327,6 +324,8 @@ public class AnimationInfo : MonoBehaviour {
 
         Keys[0].IsGoal = true;
 
+        //FUNDA: these don't work well
+        /*
         //find local minima
         for (int i = 1; i < Keys.Length - 1; i++) {
             
@@ -341,6 +340,8 @@ public class AnimationInfo : MonoBehaviour {
               else
                   Keys[i].IsGoal = false;
         }
+        */
+        //FUNDA: these don't work well
         /*
         for (int i = 1; i < Keys.Length - 1; i++) {
 
@@ -357,6 +358,16 @@ public class AnimationInfo : MonoBehaviour {
         }
          */
 
+        //manually for walk
+        //if(AnimName.ToUpper().Contains("WALK")) {
+        //    int[] walkGoals = { 2, 5, 11, 15 }; //steps
+        //    for(int i = 0; i < walkGoals.Length; i++) {
+        //        GoalSpeeds.Add(0);
+        //        GoalKeys.Add(walkGoals[i]);
+        //        Keys[walkGoals[i]].IsGoal = true;
+        //    }
+        //}
+
         GoalSpeeds.Add(0);
         GoalKeys.Add(Keys.Length-1);
         Keys[Keys.Length - 1].IsGoal = true;
@@ -365,33 +376,16 @@ public class AnimationInfo : MonoBehaviour {
 	public void InitKeyPoints() {
 
 #if !EDITORMODE
+  
         Keyframe[] frames = new Keyframe[FrameCnt]; //all frames
         for (int i = 0; i < frames.Length; i++) {
             frames[i] = new Keyframe();
             frames[i].time = AnimLength * ((float)i / (FrameCnt - 1));
             
         }
-        animation.Play(AnimName);
+        GetComponent<Animation>().Play(AnimName);
 	
-      /*
-        //Find keys based on bounding boxes
-        Keys = new KeyInfo[frames.Length];
-
-	    KeyExtractor.Reset();
-        foreach (Keyframe f in frames) {
-            
-            animation[AnimName].enabled = true;
-            animation[AnimName].time = f.time;
-            
-            animation.Sample();
-            List<Transform> upperBody = _torso.BodyChainToArray(_torso.Spine); //needs to be updated for each keyframe
-            List<Vector3> posList = new List<Vector3>();
-            posList = _torso.BodyPosArr(upperBody);
-            KeyExtractor.ComputeBoundingBoxVolume(posList);
-        }
-	    List <int> keyInds = KeyExtractor.ExtractKeys();
-	    Debug.Log(keyInds.Count);
-       */
+    
 
         //OR read prerecorded keys
         Keys = new KeyInfo[frames.Length];
@@ -399,19 +393,19 @@ public class AnimationInfo : MonoBehaviour {
 
             Keys[i] = new KeyInfo();
 
-            animation[AnimName].enabled = true;
+            GetComponent<Animation>()[AnimName].enabled = true;
 
-            animation[AnimName].time = frames[i].time;
-            Keys[i].Time = animation[AnimName].time;
+            GetComponent<Animation>()[AnimName].time = frames[i].time;
+            Keys[i].Time = GetComponent<Animation>()[AnimName].time;
 
-           // int frameInd = keyInds[i];
-           // Keys[i].FrameNo = frameInd;
-         //   animation[AnimName].time = frames[frameInd].time;
+            // int frameInd = keyInds[i];
+            // Keys[i].FrameNo = frameInd;
+            //   animation[AnimName].time = frames[frameInd].time;
 
-           
-            animation[AnimName].enabled = true;
-            
-            animation.Sample();        
+
+            GetComponent<Animation>()[AnimName].enabled = true;
+
+            GetComponent<Animation>().Sample();        
 
             Keys[i].IsCurve = false;
             //body chain and transformation arrays for the specific animation
@@ -444,7 +438,7 @@ public class AnimationInfo : MonoBehaviour {
         else
             AssignGoalKeys((int)EEType.RightHand);
 
-        animation.Stop(AnimName);                 
+        GetComponent<Animation>().Stop(AnimName);                 
 
 #else
 
@@ -676,88 +670,89 @@ public class AnimationInfo : MonoBehaviour {
 	}
 
     
-    public void UpdateInterpolators() {
-        float tp;
-        float[] newKeyTimes = new float[Keys.Length];
-        float[] originalKeyTimes = new float[Keys.Length];
-        for (int i = 0; i < Keys.Length; i++) {
+    //public void UpdateInterpolators() {
+    //    float tp;
+    //    float[] newKeyTimes = new float[Keys.Length];
+    //    float[] originalKeyTimes = new float[Keys.Length];
+    //    for (int i = 0; i < Keys.Length; i++) {
 
-            int prevGoalKeyInd = FindPrevGoalAtTime(Keys[i].Time);
-            int nextGoalKeyInd = prevGoalKeyInd + 1;
-            if (nextGoalKeyInd > GoalKeys.Count - 1)
-                nextGoalKeyInd = GoalKeys.Count - 1;
+    //        int prevGoalKeyInd = FindPrevGoalAtTime(Keys[i].Time);
+    //        int nextGoalKeyInd = prevGoalKeyInd + 1;
+    //        if (nextGoalKeyInd > GoalKeys.Count - 1)
+    //            nextGoalKeyInd = GoalKeys.Count - 1;
 
-            int prevGoal = GoalKeys[prevGoalKeyInd];
-            int nextGoal = GoalKeys[nextGoalKeyInd];
+    //        int prevGoal = GoalKeys[prevGoalKeyInd];
+    //        int nextGoal = GoalKeys[nextGoalKeyInd];
 
 
-            if (Keys[i].Time <= Keys[prevGoal].Time)
-                tp = 0;
-            else if (Keys[nextGoal].Time == Keys[prevGoal].Time)
-                tp = 1;
-            else {
-                tp = (Keys[i].Time - Keys[prevGoal].Time) / (Keys[nextGoal].Time - Keys[prevGoal].Time);
-            }
+    //        if (Keys[i].Time <= Keys[prevGoal].Time)
+    //            tp = 0;
+    //        else if (Keys[nextGoal].Time == Keys[prevGoal].Time)
+    //            tp = 1;
+    //        else {
+    //            tp = (Keys[i].Time - Keys[prevGoal].Time) / (Keys[nextGoal].Time - Keys[prevGoal].Time);
+    //        }
 
-            float t0, t1,ti, v0, v1;
+    //        float t0, t1,ti, v0, v1;
             
             
-             //no anticipation or overshoot except first and last keys
-            if (prevGoalKeyInd == 0) {
-                t0 = T0;
-                v0 = V0;
+    //         //no anticipation or overshoot except first and last keys
+    //        if (prevGoalKeyInd == 0) {
+    //            t0 = T0;
+    //            v0 = V0;
                 
-            }
-            else { //should shift ti as well
-                t0 = 0;
-                v0 = 0;
+    //        }
+    //        else { //should shift ti as well
+    //            t0 = 0;
+    //            v0 = 0;
                                
-            }
+    //        }
 
-            if (prevGoalKeyInd + 1 == GoalKeys.Count - 1) {
-                t1 = T1;
-                v1 = V1;
-            }
-            else {
-                t1 = 1;
-                v1 = 0;
-            }
+    //        if (prevGoalKeyInd + 1 == GoalKeys.Count - 1) {
+    //            t1 = T1;
+    //            v1 = V1;
+    //        }
+    //        else {
+    //            t1 = 1;
+    //            v1 = 0;
+    //        }
 
-            //should shift ti as well
-            ti = Ti - T0/2f + (1 - T1)/2f;
+    //        //should shift ti as well
+    //        ti = Ti - T0/2f + (1 - T1)/2f;
                   
-            // anticipation and overshoot for all keyframes
+    //        // anticipation and overshoot for all keyframes
             
-        //    t0 = T0;
-          //  t1 = T1;
-          //  v0 = V0;
-           // v1 = V1;
+    //    //    t0 = T0;
+    //      //  t1 = T1;
+    //      //  v0 = V0;
+    //       // v1 = V1;
           
 
-            v0 -= GoalSpeeds[prevGoalKeyInd];
-            v1 -= GoalSpeeds[nextGoalKeyInd];
-            float s = TimingControl(t0,t1, ti, v0, v1, tp);
+    //        v0 -= GoalSpeeds[prevGoalKeyInd];
+    //        v1 -= GoalSpeeds[nextGoalKeyInd];
+    //        float s = TimingControl(t0,t1, ti, v0, v1, tp);
 
-            //map s into the whole spline        		   
-            float t = (s * (Keys[nextGoal].Time - Keys[prevGoal].Time) + Keys[prevGoal].Time);
-            newKeyTimes[i] = t;
+       
+    //        //map s into the whole spline        		   
+    //        float t = (s * (Keys[nextGoal].Time - Keys[prevGoal].Time) + Keys[prevGoal].Time);
+    //        newKeyTimes[i] = t;
 
 
-        }
+    //    }
 
-        //Record original keytimes
-        for (int i = 0; i < Keys.Length; i++) {
-            originalKeyTimes[i] = Keys[i].Time;
-            Keys[i].Time = newKeyTimes[i];
-        }
+    //    //Record original keytimes
+    //    for (int i = 0; i < Keys.Length; i++) {
+    //        originalKeyTimes[i] = Keys[i].Time;
+    //        Keys[i].Time = newKeyTimes[i];
+    //    }
 
-        //Update interpolators
-        InitInterpolators(Tval, Continuity, 0);
-        //Reset key times back
-        for (int i = 0; i < Keys.Length; i++)
-            Keys[i].Time = originalKeyTimes[i];
+    //    //Update interpolators
+    //    InitInterpolators(Tval, Continuity, 0);
+    //    //Reset key times back
+    //    for (int i = 0; i < Keys.Length; i++)
+    //        Keys[i].Time = originalKeyTimes[i];
 
-    }
+    //}
 
     
     //t is between 0 and 1
@@ -849,8 +844,6 @@ public class AnimationInfo : MonoBehaviour {
                 passedCurves = false;
             }
 
-
-            
 
 
             k.EePos[arm] = ArmShape(arm, k.EePos[arm], k.ShoulderPos[arm], k.RootForward);
@@ -1041,14 +1034,10 @@ public class AnimationInfo : MonoBehaviour {
     }
 	
    
-
-	
-
     float TimingControl(float t0, float t1, float ti, float v0, float v1, float tp) {
 
         float area1 = 0f, area2 = 0f, area3 = 0f;
         float vel;
-
 
         
         float tpp = Mathf.Pow(tp, Texp);
@@ -1059,13 +1048,14 @@ public class AnimationInfo : MonoBehaviour {
         float ti2 = ti * ti;
         float s = 0f;
 
+ 
 
         if (t0 == t1)
             _vi = 0f;
             //  _vi = (2f + 2f * v1 * t1 - v1 + v0 * ti - v1 * ti) / (t1 - t0);
         else
             _vi = (2f + v1 + v0 * ti - v1 * ti) / (t1 - t0);
-     
+
 
 
         area1 = -0.5f * v0 * t0;
@@ -1078,7 +1068,7 @@ public class AnimationInfo : MonoBehaviour {
             area3 = area2;
         else
             area3 = area2 + (-0.5f * (v1 + _vi) * t12 + (v1 * ti + t1 * _vi) * t1 - (-0.5f * (v1 + _vi) * ti2 + (v1 * ti + t1 * _vi) * ti)) / (t1 - ti);
-
+        
 
         //Compute s
         if (tpp >= 0f && tpp < t0) {
@@ -1093,20 +1083,19 @@ public class AnimationInfo : MonoBehaviour {
             vel = (-(v1 + _vi) * tpp + v1 * ti + t1 * _vi) / (t1 - ti);
             s = area2 + (-(v1 + _vi) * tpp2 * 0.5f + (v1 * ti + t1 * _vi) * tpp - (-(v1 + _vi) * ti2 * 0.5f + (v1 * ti + t1 * _vi) * ti)) / (t1 - ti);
         }
-        else if (tpp >= t1 && tpp < 1f) {
+        else if(tpp >= t1 && tpp < 1f) {
             vel = (-v1 * tpp + v1) / (t1 - 1f);
             s = area3 + (-v1 * tpp2 * 0.5f + v1 * tpp - (-v1 * t12 * 0.5f + v1 * t1)) / (t1 - 1f);
 
         }
-        else if (tpp == 1f) {
-            s = area3;
-            vel = 0f;
+        else if(tpp == 1f) {
+           s = area3;
+           vel = 0f;
         }
 
         else
             vel = s = 0f;
-
-
+     
         _velArr.Add(vel);
         _tppArr.Add(tpp);
 
@@ -1176,8 +1165,10 @@ public class AnimationInfo : MonoBehaviour {
         }
 
         float s = TimingControl(t0, t1, ti, v0, v1, Tp);
+       
         
-        //map s into the whole spline        		   
+        //map s into the whole spline
+
         GlobalT = (s * (NextGoal - PrevGoal) + PrevGoal) / AnimLength;
 
         

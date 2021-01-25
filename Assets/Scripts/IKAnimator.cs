@@ -1,4 +1,4 @@
-#define DEBUGMODE
+
 using System;
 using System.Collections.Generic;
 using RootMotion.FinalIK;
@@ -46,22 +46,10 @@ public class IKAnimator : MonoBehaviour {
     public float LockEnd;//handshake 0.6f;
     
 
-    //public Transform TargetLeftWrist, TargetRightWrist;
-
-#if DEBUGMODE
-    private List<Vector3> _targetLPrev, _targetRPrev;
-    private List<Vector3> _handRPrev;
-    private List<float> _handRTime;
-
-
-#endif
-
 
     private IKSolver _ikSolver;
     private FullBodyBipedIK _fbIk;
     private LookAtIK _laIk;
-
-    //private BipedIK _bipIk;
 
 
 
@@ -103,16 +91,6 @@ public class IKAnimator : MonoBehaviour {
 
     private void Awake() {
 
-#if DEBUGMODE
-        _targetRPrev = new List<Vector3>();
-        _targetLPrev = new List<Vector3>();
-
-        //_handRPrev = new List<Vector3>();
-        //_handRTime = new List<float>();
-
-        //  _handCurve = GameObject.Find("HandCurve");
-
-#endif
 
 
         _animInfo = GetComponent<AnimationInfo>();
@@ -241,10 +219,7 @@ public class IKAnimator : MonoBehaviour {
         if (_animInfo.DisableLMA) {
             _animInfo.GetComponent<Animation>()[_animInfo.AnimName].speed = 1;
             DisableIK();
-            //hack
-
             
-           
 
             return;
         }
@@ -277,52 +252,24 @@ public class IKAnimator : MonoBehaviour {
 
         ComputeTargets(keyInd, lt, T);
 
+        //To prevent comical affects during anticipation
+        //if(T < 0 && (_animInfo.AnimName.ToUpper().Contains("WALK")))
+        //    return;
 
 
+
+           //Handling this as a separate drives file
         //To prevent comical affects during overshoot
-     //   if (T > 1 && (_animInfo.AnimName.ToUpper().Contains("WALK") || _animInfo.AnimName.ToUpper().Contains("SALSA") || _animInfo.AnimName.ToUpper().Contains("HIGHFIVE")))
-       //     return;
+        //if(T > 1 && (_animInfo.AnimName.ToUpper().Contains("WALK") || _animInfo.AnimName.ToUpper().Contains("SALSA") || _animInfo.AnimName.ToUpper().Contains("HIGHFIVE")))
+        //return;
 
 
-        if (_animInfo.AnimName.ToUpper().Contains("AIM") || _animInfo.AnimName.ToUpper().Contains("GUARD") || _animInfo.AnimName.ToUpper().Contains("CUSTOMER"))
-            BendKnees();
-
-        if (_animInfo.CharacterName.ToUpper().Contains("CUSTOMER") || _animInfo.CharacterName.ToUpper().Contains("CARL"))
+        if(_animInfo.CharacterName.ToUpper().Contains("CUSTOMER") || _animInfo.CharacterName.ToUpper().Contains("CARL"))
             BendKnees();
 
 
-        //HACK for customers scene
-        if (_animInfo.AnimName.ToUpper().Contains("GUARD") || _animInfo.AnimName.ToUpper().Contains("CUSTOMER") ||
-            _animInfo.AnimName.ToUpper().Contains("ROBBER") || _animInfo.AnimName.ToUpper().Contains("TELLER") || _animInfo.AnimName.ToUpper().Contains("CONVERS") || _animInfo.AnimName.ToUpper().Contains("FOOTBALL")) {
-
-            if (HrMag < 0.1f)
-                _stopHeadRotation = true;
-
-          
-
-            if (_stopHeadRotation) {
-                //_laIk.solver.target = HeadTarget;
-                _torso.Head.rotation = _torso.Spine.rotation;
-                _laIk.solver.headWeight = 0;
-            }
-
-            else {
-                _laIk.solver.headWeight = 1;
-                //_laIk.solver.target = null;
-            }
-
-         //   UpdateLook(_animInfo.Tp + _animInfo.PrevGoalKeyInd);
-       //     UpdateBodyIK(_animInfo.Tp + _animInfo.PrevGoalKeyInd);
-            //UpdateBodyIK(_animInfo.NormalizedT);
-
-        }
-        //else {
-            UpdateLook(_animInfo.NormalizedT);
-            UpdateBodyIK(_animInfo.NormalizedT);
-
-
-        //}
-
+        UpdateLook(_animInfo.NormalizedT);
+        UpdateBodyIK(_animInfo.NormalizedT);
 
        
 
@@ -433,17 +380,6 @@ public class IKAnimator : MonoBehaviour {
             else
                 _targetR = target;
 
-
-
-
-#if DEBUGMODE
-            //To see tension
-         /*   if (arm == 0)
-                _targetLPrev.Add(_targetL);
-            else
-                _targetRPrev.Add(_targetR);
-          */
-#endif
 
         }
         //update other body parts
@@ -929,28 +865,28 @@ public class IKAnimator : MonoBehaviour {
 
 
     private void OnDrawGizmos() {
-#if DEBUGMODE
+
         if (DrawGizmos) {
             
 
-            //Gizmos.DrawSphere(_fbIk.solver.rightHandEffector.position, 0.001f);
+            ////Gizmos.DrawSphere(_fbIk.solver.rightHandEffector.position, 0.001f);
 
             
 
-            if (GetComponent<Animation>().isPlaying && _targetRPrev.Count > 1) {
-                Gizmos.color = Color.red;
+            //if (GetComponent<Animation>().isPlaying && _targetRPrev.Count > 1) {
+            //    Gizmos.color = Color.red;
 
-                for (int i = 0; i < _targetRPrev.Count ; i++) {
+            //    for (int i = 0; i < _targetRPrev.Count ; i++) {
 
-                    Gizmos.DrawSphere(_targetRPrev[i], 0.005f);
+            //        Gizmos.DrawSphere(_targetRPrev[i], 0.005f);
 
 
-                }
-            }
+            //    }
+            //}
             
             
 
-#endif
+
             if (_animInfo) {
                 float size;
                 for (int i = 0; i < _animInfo.Keys.Length; i++) {

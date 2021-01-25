@@ -161,13 +161,13 @@ public class FlourishAnimator : MonoBehaviour {
        
 
 
-       if (_animInfo.AnimName.ToUpper().Contains("WALK")) {
-           float stepSize = _animInfo.AnimSpeed * Time.deltaTime;
-           _distanceWalked += stepSize;
-           transform.Translate(transform.forward * _distanceWalked);
+       //if (_animInfo.AnimName.ToUpper().Contains("WALK")) {
+       //    float stepSize = _animInfo.AnimSpeed * Time.deltaTime;
+       //    _distanceWalked += stepSize;
+       //    transform.Translate(transform.forward * _distanceWalked);
 
            
-       }
+       //}
               
 
 

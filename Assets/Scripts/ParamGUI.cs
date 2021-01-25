@@ -4,6 +4,8 @@ using System.Linq;
 using UnityEngine;
 using System.IO;
 using UnityEngine.SceneManagement;
+using System.Collections;
+using System.Collections.Generic;
 
 /// <summary>
 /// GUI functions to tune character personality
@@ -46,22 +48,19 @@ public class ParamGUI : GUIController {
         _dropDownRectAgents = new DropDownRect(new Rect(115, 20, 90, 300));
         _dropDownRectAnimNames = new DropDownRect(new Rect(210, 20, 90, 300));
 
-        for (int i = 0; i < 32; i++) {
+        for(int i = 0; i < 32; i++) {
             _driveParams[i] = new DriveParams();
         }
 
 
 
-        for (int i = 0; i < 32; i++)
+        for(int i = 0; i < 32; i++)
             _driveParams[i].ReadValuesDrives(i);
 
 
         _firstRun = true;
 
-
-
         _agentSelInd = 0;
-
 
 
         _persMapper = new PersonalityMapper();
@@ -69,7 +68,7 @@ public class ParamGUI : GUIController {
 
 
 
-        foreach (AnimationInfo t in _agentScripts)
+        foreach(AnimationInfo t in _agentScripts)
             Reset(t);
 
         //   FormatData("motionEffortCoefs.txt");
@@ -82,7 +81,7 @@ public class ParamGUI : GUIController {
 
     void Update() {
 
-        if (_firstRun) {
+        if(_firstRun) {
             _persMapper.ComputeMotionEffortCoefs(_driveParams);
 
             _firstRun = false; //no need to compute again
@@ -90,22 +89,22 @@ public class ParamGUI : GUIController {
         }
 
 
-        else if (Input.GetKeyDown("0"))
+        else if(Input.GetKeyDown("0"))
             Time.timeScale = 0;
-        else if (Input.GetKeyDown("1"))
+        else if(Input.GetKeyDown("1"))
             Time.timeScale = 1f;
-        else if (Input.GetKeyDown("2"))
+        else if(Input.GetKeyDown("2"))
             Time.timeScale = 2f;
-        else if (Input.GetKeyDown("3"))
+        else if(Input.GetKeyDown("3"))
             Time.timeScale = 3f;
-        else if (Input.GetKeyDown("4"))
+        else if(Input.GetKeyDown("4"))
             Time.timeScale = 4f;
 
-        else if (Input.GetKeyDown("s")) {
+        else if(Input.GetKeyDown("s")) {
             GameObject.Find("Camera").GetComponent<Screenshot>().IsRunning =
                 !GameObject.Find("Camera").GetComponent<Screenshot>().IsRunning;
 
-            if (GameObject.Find("Camera").GetComponent<Screenshot>().IsRunning) {
+            if(GameObject.Find("Camera").GetComponent<Screenshot>().IsRunning) {
                 Time.timeScale = 0.5f;
                 RecordPersonalities();
             }
@@ -113,28 +112,28 @@ public class ParamGUI : GUIController {
                 Time.timeScale = 1f;
 
         }
-        else if (Input.GetKeyDown("l"))
+        else if(Input.GetKeyDown("l"))
             LoadPersonalities();
 
         //Show keypoints
-        else if (Input.GetKeyDown("g")) {
+        else if(Input.GetKeyDown("g")) {
             Debug.Log(_agentScripts[_agentSelInd].CharacterName + " " +
                       _agentScripts[_agentSelInd].CurrKeyInd);
 
         }
 
 
-        if (Input.GetMouseButtonDown(0)) {
+        if(Input.GetMouseButtonDown(0)) {
 
 
-            if (Camera.main != null) {
+            if(Camera.main != null) {
 
 
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 Physics.Raycast(ray, out _hit);
-                if (_hit.collider) {
-                    for (int i = 0; i < _agentScripts.Length; i++) {
-                        if (_hit.collider.transform.parent && _agentScripts[i].gameObject.Equals(_hit.collider.transform.parent.gameObject)) {
+                if(_hit.collider) {
+                    for(int i = 0; i < _agentScripts.Length; i++) {
+                        if(_hit.collider.transform.parent && _agentScripts[i].gameObject.Equals(_hit.collider.transform.parent.gameObject)) {
                             _agentSelInd = i;
 
                             break;
@@ -178,7 +177,7 @@ public class ParamGUI : GUIController {
         GUI.color = Color.white;
 
         GUILayout.Label("");
-        for (int i = 0; i < 5; i++) {
+        for(int i = 0; i < 5; i++) {
             GUILayout.BeginHorizontal();
             GUILayout.Label("" + _persMin);
             GUILayout.Label("" + _personalityName[i]);
@@ -198,15 +197,14 @@ public class ParamGUI : GUIController {
 
 
             string[] ocean = { "O", "C", "E", "A", "N" };
-            for (int j = 0; j < 5; j++) {
-                if (_agentScripts[_agentSelInd].GetComponent<PersonalityComponent>().Personality[j] == -1)
+            for(int j = 0; j < 5; j++) {
+                if(_agentScripts[_agentSelInd].GetComponent<PersonalityComponent>().Personality[j] == -1)
                     ocean[j] += "-";
-                else if (_agentScripts[_agentSelInd].GetComponent<PersonalityComponent>().Personality[j] == 1)
+                else if(_agentScripts[_agentSelInd].GetComponent<PersonalityComponent>().Personality[j] == 1)
                     ocean[j] += "+";
                 else
                     ocean[j] = "";
             }
-
 
         }
 
@@ -215,52 +213,58 @@ public class ParamGUI : GUIController {
 
 
         _lockHand = GUILayout.Toggle(_lockHand, "Lock hand");
-        foreach (AnimationInfo a in _agentScripts)
+        foreach(AnimationInfo a in _agentScripts)
             a.GetComponent<IKAnimator>().LockHand = _lockHand;
 
 
-        if (GUILayout.Button("Reset scene"))
+        if(GUILayout.Button("Reset scene"))
             SceneManager.LoadScene("MotionSelection");
 
-        if (GUILayout.Button("Randomize")) {
-            foreach (AnimationInfo a in _agentScripts)
-                for (int i = 0; i < 5; i++)
+        if(GUILayout.Button("Randomize")) {
+            foreach(AnimationInfo a in _agentScripts)
+                for(int i = 0; i < 5; i++)
                     a.GetComponent<PersonalityComponent>().Personality[i] = MathDefs.GetRandomNumber(-1f, 1f);
 
         }
 
-        if (GUILayout.Button("Reset")) {
-            foreach (AnimationInfo a in _agentScripts)
-                for (int i = 0; i < 5; i++)
+        if(GUILayout.Button("Reset")) {
+            foreach(AnimationInfo a in _agentScripts)
+                for(int i = 0; i < 5; i++)
                     a.GetComponent<PersonalityComponent>().Personality[i] = 0;
         }
 
-        if (GUILayout.Button("Assign All")) {
-            foreach (AnimationInfo a in _agentScripts)
-                for (int i = 0; i < 5; i++)
+        if(GUILayout.Button("Assign All")) {
+            foreach(AnimationInfo a in _agentScripts)
+                for(int i = 0; i < 5; i++)
                     a.GetComponent<PersonalityComponent>().Personality[i] = _personality[i];
 
 
         }
 
-        if (GUILayout.Button("Assign All Variation")) {
-            foreach (AnimationInfo a in _agentScripts)
-                for (int i = 0; i < 5; i++) {
+        if(GUILayout.Button("Assign All Variation")) {
+            foreach(AnimationInfo a in _agentScripts)
+                for(int i = 0; i < 5; i++) {
                     a.GetComponent<PersonalityComponent>().Personality[i] = _personality[i] +
                                                                             MathDefs.GetRandomNumber(-0.2f, 0.2f);
-                    if (a.GetComponent<PersonalityComponent>().Personality[i] > 1)
+                    if(a.GetComponent<PersonalityComponent>().Personality[i] > 1)
                         a.GetComponent<PersonalityComponent>().Personality[i] = 1;
-                    else if (a.GetComponent<PersonalityComponent>().Personality[i] < -1)
+                    else if(a.GetComponent<PersonalityComponent>().Personality[i] < -1)
                         a.GetComponent<PersonalityComponent>().Personality[i] = -1;
                 }
         }
 
-        if (GUILayout.Button("Play"))
+       
+
+        if(GUILayout.Button("Play"))
             PlayAgents();
 
 
+        if(GUILayout.Button("Stop"))
+            StopAgents();
 
-        if (GUILayout.Button("Record")) {
+
+
+        if(GUILayout.Button("Record")) {
             GameObject.Find("Main Camera").GetComponent<Screenshot>().IsRunning = true;
 
             Time.timeScale = 0.25f;
@@ -268,6 +272,12 @@ public class ParamGUI : GUIController {
             PlayAgents();
 
         }
+
+        if(GUILayout.Button("CaptureBVH"))
+            StartCoroutine(CapturePersonalityCombinations());
+
+
+
 
 
 
@@ -281,9 +291,75 @@ public class ParamGUI : GUIController {
 
     }
 
-    void PlayAgents() {
-        int agentInd = 0;
 
+    int pDecimal = 0;
+    float[] pValues = { -1f, -0.5f,   0,  0.5f,  1f };
+    
+
+    private IEnumerator WaitForAnimation(AnimationInfo a) {
+        Animation animation = a.GetComponent<Animation>();
+        while(animation.isPlaying) {
+            yield return null;
+        }
+
+
+        // at this point, the animation has completed
+        // so at this point, do whatever you wish...
+        Debug.Log("Animation completed");
+        a.GetComponent<BVHRecorder>().capturing = false;        
+        a.GetComponent<BVHRecorder>().saveBVH();
+        
+
+        pDecimal++;
+
+
+    }
+
+
+
+
+    IEnumerator CapturePersonalityCombinations() {
+        AnimationInfo a = _agentScripts[0];
+
+        Animation animation = a.GetComponent<Animation>();
+
+        //while(animation.isPlaying)
+        //yield return null;
+
+
+        while(pDecimal < Math.Pow(pValues.Length, 5)) { //combinations of -1, 0, 1 for the 5 perso5nalities
+
+
+            ResetComponents(a);
+
+            List<int> pInds = MathDefs.convertToNary(pDecimal, 5, 5);
+
+            for(int i = 0; i < 5; i++)
+                a.GetComponent<PersonalityComponent>().Personality[i] = pValues[pInds[i]];
+
+            
+            _persMapper.MapPersonalityToMotion(a.GetComponent<PersonalityComponent>()); //calls initkeypoints, which stops the animation
+
+            a.GetComponent<BVHRecorder>().clearCapture();
+
+            Play(a);
+
+            
+            a.GetComponent<BVHRecorder>().filename = String.Format("out/walking_{0}_{1}_{2}_{3}_{4}", pValues[pInds[0]], pValues[pInds[1]], pValues[pInds[2]], pValues[pInds[3]], pValues[pInds[4]]);
+            Debug.Log(String.Format("{0} {1} {2} {3} {4}", pValues[pInds[0]], pValues[pInds[1]], pValues[pInds[2]], pValues[pInds[3]], pValues[pInds[4]]));
+            a.GetComponent<BVHRecorder>().capturing = true;
+
+
+
+            yield return StartCoroutine(WaitForAnimation(a));
+        }
+
+
+    }
+
+
+    void PlayAgents() {
+        
 
         foreach (AnimationInfo t in _agentScripts) {
 
@@ -291,18 +367,26 @@ public class ParamGUI : GUIController {
 
 
             _persMapper.MapPersonalityToMotion(t.GetComponent<PersonalityComponent>()); //calls initkeypoints, which stops the animation
-
+          
             Play(t);
+            StartCoroutine(WaitForAnimation(t));
+            t.GetComponent<BVHRecorder>().capturing = true;
 
             GUI.color = Color.white;
-            agentInd++;
+        
         }
-
 
         _persMapper.MapAnimSpeeds(_agentScripts, 0.6f, 1.3f); //map them to the range
     }
 
-    void RecordPersonalities() {
+    void StopAgents() {
+        foreach(AnimationInfo t in _agentScripts) {
+            StopAnimations(t);
+
+        }
+    }
+
+        void RecordPersonalities() {
         using (StreamWriter sw = new StreamWriter("Assets/Resources/personalities.txt")) {
             foreach (AnimationInfo a in _agentScripts) {
                 sw.WriteLine(a.CharacterName + "\t" + a.GetComponent<PersonalityComponent>().Personality[0] + "\t" +
