@@ -6,7 +6,7 @@ Scene Hierarchy
 
 All the characters must be placed under a parent GameObject. In this case, the parent game object is called “agents”, but it can take any name.
 
-  (https://github.com/fdurupinar/attentionToPersonality/manual/images/Picture1.png)
+(https://github.com/fdurupinar/attentionToPersonality/manual/images/Picture1.png)
 
 The GUI script to assign the personality parameters is attached to “agents”.
 
