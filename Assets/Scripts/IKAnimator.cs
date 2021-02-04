@@ -1,6 +1,5 @@
 
 using System;
-using System.Collections.Generic;
 using RootMotion.FinalIK;
 using UnityEngine;
 
@@ -10,10 +9,8 @@ using UnityEngine;
 /// </summary>
 
 public class IKAnimator : MonoBehaviour {
-
-    //public GameObject trajectory;
+    
     private Vector3 _targetL, _targetR; //current target
-
 
     //Torso
     public float[] EncSpr;
@@ -83,10 +80,11 @@ public class IKAnimator : MonoBehaviour {
 
     public bool DrawGizmos = false;
 
-
-
     
     public float T;
+
+
+    public bool AnimationPlaying;
     
 
     private void Awake() {
@@ -117,17 +115,6 @@ public class IKAnimator : MonoBehaviour {
     public void Reset() {
 
         
-
-#if DEBUGMODE
-        _targetRPrev.Clear();
-        _targetLPrev.Clear();
-        GetComponent<FlourishAnimator>().HandLPrev.Clear();
-        GetComponent<FlourishAnimator>().HandRPrev.Clear();
-
-#endif
-
-
-
 
         _fbIk.solver.Initiate(_fbIk.solver.rootNode);
         _laIk.solver.Initiate(_laIk.solver.GetRoot());
@@ -164,7 +151,6 @@ public class IKAnimator : MonoBehaviour {
             LockEnd = 0.8f;
         }
 
-
     }
 
     public void EnableIK() {
@@ -178,7 +164,6 @@ public class IKAnimator : MonoBehaviour {
     }
 
     private void Update() {
-
 
 
         //if called continuously, this causes slowing down, but if not called, the motion stops abruptly
@@ -199,22 +184,22 @@ public class IKAnimator : MonoBehaviour {
 
         _feetDist = Vector3.Distance(toeL, toeR);
 
-       
-
     }
-
 
 
     //Has to be lateupdate because we overwrite the transforms
     private void LateUpdate() {
-        
-        //correct breathing scales to ensure fbik computations are correct
-        _torso.Spine1.transform.localScale = new Vector3(1, 1, 1);
-        for (int i = 0; i < _torso.Spine1.childCount; i++)
-            _torso.Spine1.GetChild(i).localScale = new Vector3(1, 1, 1); //correct child
+
+        AnimationPlaying = GetComponent<Animation>().isPlaying;
+        //correct breathing scales to ensure fbik computations are correct        
+        if(GetComponent<Animation>().isPlaying) {
+            _torso.Spine1.transform.localScale = new Vector3(1, 1, 1);
+            for(int i = 0; i < _torso.Spine1.childCount; i++)
+                _torso.Spine1.GetChild(i).localScale = new Vector3(1, 1, 1); //correct child
+        }
 
 
-       
+
 
         if (_animInfo.DisableLMA) {
             _animInfo.GetComponent<Animation>()[_animInfo.AnimName].speed = 1;
@@ -231,8 +216,9 @@ public class IKAnimator : MonoBehaviour {
         Interpolate();
 
 
-        if (!GetComponent<Animation>().isPlaying || _animInfo.NormalizedT > 1f)
+        if(!GetComponent<Animation>().isPlaying || _animInfo.NormalizedT > 1f) {
             return;
+        }
 
 
         EnableIK();
@@ -246,8 +232,7 @@ public class IKAnimator : MonoBehaviour {
         int keyInd = _animInfo.CurrKeyInd;
         float lt = _animInfo.LocalT;
         T = _animInfo.GlobalT;
-
-
+        
 
 
         ComputeTargets(keyInd, lt, T);
@@ -276,7 +261,7 @@ public class IKAnimator : MonoBehaviour {
     }
 
     private void Interpolate() {
-        if (!GetComponent<Animation>().isPlaying)
+        if(!GetComponent<Animation>().isPlaying)
             return;
 
         _animInfo.InterpolateWholeBody();
@@ -505,7 +490,7 @@ public class IKAnimator : MonoBehaviour {
             return;
 
         float nT = t;
-        float xTarget = (GetComponent<FlourishAnimator>().TrMag + HrMag)*Mathf.Cos(Mathf.PI + Mathf.PI*HfMag*nT);
+        float xTarget;// = (GetComponent<FlourishAnimator>().TrMag + HrMag)*Mathf.Cos(Mathf.PI + Mathf.PI*HfMag*nT);
         float sinVal = Mathf.Sin(Mathf.PI*HfMag*nT);
         float yTarget;
 
@@ -784,16 +769,15 @@ public class IKAnimator : MonoBehaviour {
 
 
             float footAngle = Mathf.Asin(sinRisOffset/(0.66f*footLength))*Mathf.Rad2Deg;
-                //consider foot length from sole to heel: remove toe length
+            //consider foot length from sole to heel: remove toe length
 
 
             //should determine foot rotation based on the model
 
 
-            if (_animInfo.CharacterName.Contains("CHUCK") || _animInfo.CharacterName.Contains("ADAM") ||
-                _animInfo.CharacterName.Contains("GUARD") || _animInfo.CharacterName.Contains("ROBBER") ||
-                _animInfo.CharacterName.Contains("CUSTOMER")) //non-standard foot angles
-                footAngle = -footAngle;
+            if(_animInfo.CharacterName.Contains("CHUCK")) {//non-standard foot angles
+                footAngle = -footAngle;          
+            }
 
             footLRot2 = Quaternion.AngleAxis(footAngle, _fbIk.solver.leftFootEffector.bone.right);
             footRRot2 = Quaternion.AngleAxis(footAngle, _fbIk.solver.rightFootEffector.bone.right);
@@ -850,14 +834,6 @@ public class IKAnimator : MonoBehaviour {
                     //for one last rotation                 
                 _fbIk.solver.rightFootEffector.rotation = footRRot1*_fbIk.solver.rightFootEffector.bone.rotation;
             }
-        }
-
-
-
-        if (_animInfo.CharacterName.Contains("CUSTOMER")) {
-
-            _torso.Toe[0].rotation = Quaternion.Inverse(footLRot2)*_torso.Toe[0].rotation;
-            _torso.Toe[1].rotation = Quaternion.Inverse(footRRot2)*_torso.Toe[1].rotation;
         }
 
 

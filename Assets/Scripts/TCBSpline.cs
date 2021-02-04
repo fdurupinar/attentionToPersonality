@@ -20,8 +20,7 @@ public class TCBSpline {
 
     //Segment[] segments;
     int _amount;
-
-    float mLength = 0f;
+    
     public float Tension;
     public float Continuity;
     public float Bias;

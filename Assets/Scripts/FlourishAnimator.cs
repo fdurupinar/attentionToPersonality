@@ -1,4 +1,3 @@
-//#define DEBUGMODE
 
 using System.Collections.Generic;
 using UnityEngine;
@@ -30,11 +29,13 @@ public class FlourishAnimator : MonoBehaviour {
 
     private bool _stopRotation;
     private float _lastTorsoAngle;
-    private float _distanceWalked = 0;
+    //private float _distanceWalked = 0;
 
     public int LoopPlayCount;
     public Vector3 pos1, pos2;
-    private Vector3 _initialForward;
+    bool oneLastTime = false;
+
+
     private void Awake() {
       
         _animInfo = GetComponent<AnimationInfo>();
@@ -42,6 +43,8 @@ public class FlourishAnimator : MonoBehaviour {
 
         HandLPrev = new List<Vector3>();
         HandRPrev = new List<Vector3>();
+
+    
         
     }
 
@@ -51,8 +54,8 @@ public class FlourishAnimator : MonoBehaviour {
         _lastTorsoAngle = 0;
 
         LoopPlayCount = 0;
+        oneLastTime = false;
 
-        _initialForward = _torso.Root.forward;
 
     }
 
@@ -64,36 +67,30 @@ public class FlourishAnimator : MonoBehaviour {
         EtMag = DMag = EfMag = 0f;
 
     }
+
     //Has to be lateupdate because we overwrite the transforms
     private void LateUpdate() {
-        
-        if (!GetComponent<Animation>().isPlaying || _animInfo.DisableLMA)
-            // || animation[_animInfo.AnimName].normalizedTime  > 1f)             
-            return;
-
-
 
         float t;
-        //HACK for robbery scene
-        /*if (_animInfo.AnimName.ToUpper().Contains("GUARD") || _animInfo.AnimName.ToUpper().Contains("CUSTOMER") ||
-            _animInfo.AnimName.ToUpper().Contains("ROBBER") || _animInfo.AnimName.ToUpper().Contains("TELLER")) {
-            t = _animInfo.Tp + (float)_animInfo.PrevGoalKeyInd; //for robbery simulation
+        //t = _animInfo.NormalizedT;
+        t = _animInfo.GlobalT;
 
+        if(!GetComponent<Animation>().isPlaying || _animInfo.DisableLMA) {
+            if(!oneLastTime)
+                oneLastTime = true;
+            else
+                return;
+           
+            
         }
-        else {*/
-            t = _animInfo.NormalizedT;
-            if (t > 1)
-                t = 1;
-        //}
-
-
         
-
-
         
+        if (t > 1)
+            t = 1;
+
+
         //Torso rotation
         float torsoRot = TrMag * Mathf.Sin(TfMag * Mathf.PI * t);
-
 
         float begin = GetComponent<IKAnimator>().LockBegin;
         float end = GetComponent<IKAnimator>().LockEnd;
@@ -112,53 +109,34 @@ public class FlourishAnimator : MonoBehaviour {
             _stopRotation = false;
             torsoRot = TrMag * Mathf.Sin(TfMag * Mathf.PI * (t - diff));
         }
+
         _torso.Spine.rotation = Quaternion.AngleAxis(Mathf.Rad2Deg * torsoRot, _torso.Root.up) * _torso.Spine.rotation;
 
-        
+
 
         float breath = 1f - GetComponent<IKAnimator>().SquashMag * Mathf.Sin(GetComponent<IKAnimator>().SquashF * Mathf.PI * t) / 5f;
         Vector3 breathVec = new Vector3(1.05f / breath, 1f / breath, 1.05f / breath);
 
-        if (breath != 0) {
+        if(breath != 0) {
             _torso.Spine1.localScale = breathVec;
 
             //correct children's scales
-            for (int i = 0; i < _torso.Spine1.childCount; i++)
-                  _torso.Spine1.GetChild(i).localScale = new Vector3(1 / breathVec.x, 1 / breathVec.y, 1 / breathVec.z); //correct child
+            for(int i = 0; i < _torso.Spine1.childCount; i++)
+                _torso.Spine1.GetChild(i).localScale = new Vector3(1 / breathVec.x, 1 / breathVec.y, 1 / breathVec.z); //correct child
         }
-        
-    //Arm rotations
 
-        
-        Flourish(0, _animInfo.Tp,t);
-        
+        //Arm rotations        
+        Flourish(0,  t);
+
         //Don't do flourishes if hand is locked
-
         if (GetComponent<IKAnimator>().LockHand ) {
 
          //   if(t <= end)
             _torso.Clavicle[1].rotation = Quaternion.AngleAxis(-Mathf.Rad2Deg * torsoRot, _torso.Root.up) * _torso.Clavicle[1].rotation;
         }
         else
-            Flourish(1, _animInfo.Tp, t);
-        
+            Flourish(1,  t);
 
-
-
-        //Hack
-       if (_animInfo.AnimName.ToUpper().Contains("PICK"))             
-               _torso.Pelvis[1].Rotate(-3, 0, 0);
-
-
-       if (_animInfo.AnimName.ToUpper().Contains("FIVE"))
-           _torso.Clavicle[1].Rotate(-10, 0, 0);
-
-       if (((_animInfo.AnimName.ToUpper().Contains("CONVERS") ||_animInfo.AnimName.ToUpper().Contains("FOOTBALL") )  && _animInfo.CharacterName.Contains("CUSTOMER4"))) {
-           _torso.Elbow[1].Rotate(0, 0, -30);
-           _torso.Clavicle[1].Rotate(-10, 0, 0);
-       }
-
-       
 
 
        //if (_animInfo.AnimName.ToUpper().Contains("WALK")) {
@@ -170,22 +148,12 @@ public class FlourishAnimator : MonoBehaviour {
        //}
               
 
-
-#if DEBUGMODE
-       if (Time.timeScale > 0) {
-           HandLPrev.Add(_torso.Wrist[0].position);
-           HandRPrev.Add(_torso.Wrist[1].position);
-       }
-#endif
-
-
     }
 
     
-    //Tn = normalized time between keypoints
+    
     //t = normalized time between initial and final keys
-    private void Flourish(int ind, float tn, float t) {
-        float elbowAngle = 0f;
+    private void Flourish(int ind, float t) {
 
 
         //rotate wrist around the x-axis in local coordinate system	(x-axis in EMOTE coordinate system)	
@@ -199,16 +167,14 @@ public class FlourishAnimator : MonoBehaviour {
 
 
 
-
-        if (_animInfo.CharacterName.Contains("CHUCK") || _animInfo.CharacterName.Contains("GUARD") || _animInfo.CharacterName.Contains("ROBBER") || _animInfo.CharacterName.Contains("CUSTOMER") || _animInfo.CharacterName.Contains("TELLER")) {
+        //inverse elbows and wrists
+        if (_animInfo.CharacterName.Contains("CHUCK")) {
             if (ind == 1)
                 wristTwist *= -1;
             _torso.Wrist[ind].transform.rotation = Quaternion.AngleAxis(-Mathf.Rad2Deg * wristBend, _torso.Wrist[ind].right) * _torso.Wrist[ind].transform.rotation;
             _torso.Wrist[ind].transform.rotation = Quaternion.AngleAxis(Mathf.Rad2Deg * wristTwist, _torso.Wrist[ind].up) * _torso.Wrist[ind].transform.rotation;
 
 
-     //       _torso.Wrist[ind].transform.Rotate(-Mathf.Rad2Deg*wristBend, 0, 0);
-      //      _torso.Wrist[ind].transform.Rotate(0, Mathf.Rad2Deg*wristTwist, 0);
         }
         else {
             if (ind == 1)
@@ -217,17 +183,15 @@ public class FlourishAnimator : MonoBehaviour {
             _torso.Wrist[ind].transform.rotation = Quaternion.AngleAxis(-Mathf.Rad2Deg * wristBend, _torso.Wrist[ind].forward) * _torso.Wrist[ind].transform.rotation;
             _torso.Wrist[ind].transform.rotation = Quaternion.AngleAxis(-Mathf.Rad2Deg * wristTwist, _torso.Wrist[ind].right) * _torso.Wrist[ind].transform.rotation;
 
-       //     _torso.Wrist[ind].transform.Rotate(0, 0, -Mathf.Rad2Deg * wristBend);
-        //    _torso.Wrist[ind].transform.Rotate(-Mathf.Rad2Deg * wristTwist, 0, 0);
         }
 
         //rotate elbow  around the y-axis	(z-axis in EMOTE coordinate system)	
 
         float elbowTwist = EtMag * Mathf.Sin(EfMag * Mathf.PI * t);
-        elbowAngle = (DMag * Mathf.Sin(EfMag * Mathf.PI * t));
+        float elbowAngle = DMag * Mathf.Sin(EfMag * Mathf.PI * t);
 
 
-        if (_animInfo.CharacterName.Contains("CHUCK") || _animInfo.CharacterName.Contains("GUARD") || _animInfo.CharacterName.Contains("ROBBER") || _animInfo.CharacterName.Contains("CUSTOMER") || _animInfo.CharacterName.Contains("TELLER")) {
+        if (_animInfo.CharacterName.Contains("CHUCK")) {
             
             if (ind == 1)
                 elbowTwist *= -1;
@@ -237,11 +201,7 @@ public class FlourishAnimator : MonoBehaviour {
 
             _torso.Elbow[ind].transform.rotation = Quaternion.AngleAxis(Mathf.Rad2Deg * elbowAngle, _torso.Elbow[ind].forward) * _torso.Elbow[ind].transform.rotation;
             _torso.Elbow[ind].transform.rotation = Quaternion.AngleAxis(Mathf.Rad2Deg * elbowTwist, _torso.Elbow[ind].up) * _torso.Elbow[ind].transform.rotation;
-            
 
-         //  _torso.Elbow[ind].transform.Rotate(0, 0, Mathf.Rad2Deg * elbowAngle);
-         //   _torso.Elbow[ind].transform.Rotate(0, Mathf.Rad2Deg*elbowTwist, 0);
-         
         }
         else {
             if (ind == 1)
@@ -253,32 +213,11 @@ public class FlourishAnimator : MonoBehaviour {
             _torso.Elbow[ind].transform.rotation = Quaternion.AngleAxis(Mathf.Rad2Deg * elbowAngle, _torso.Elbow[ind].up) * _torso.Elbow[ind].transform.rotation;
             _torso.Elbow[ind].transform.rotation = Quaternion.AngleAxis(-Mathf.Rad2Deg * elbowTwist, _torso.Elbow[ind].right) * _torso.Elbow[ind].transform.rotation;
             
-        //    _torso.Elbow[ind].transform.Rotate(0, Mathf.Rad2Deg * elbowAngle, 0);
-         //   _torso.Elbow[ind].transform.Rotate(-Mathf.Rad2Deg * elbowTwist, 0, 0);
             
         }
 
     }
 
-     void OnDrawGizmos() {
-#if DEBUGMODE
-         if (animation.isPlaying && HandRPrev.Count > 1) {
-             Gizmos.color = new Color(1, 0, 0);
-
-             for (int i = 0; i < HandRPrev.Count - 1; i++) {
-
-                 
-                // Gizmos.DrawSphere(HandRPrev[i], 0.01f);
-
-                 //for (int k = 0; k < 1000; k++)
-                     //Gizmos.DrawSphere(Vector3.Lerp(HandRPrev[i], HandRPrev[i + 1], k / 1000f), 0.006f );
-
-                 Gizmos.DrawSphere(HandRPrev[i], 0.01f);
-                 //Gizmos.DrawCube(HandRPrev[i],new Vector3(1,1,1)* 0.01f);
-
-             }
-         }
-#endif
-    }
+    
 
 }

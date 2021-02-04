@@ -44,7 +44,6 @@ public class ParamGUI : GUIController {
 
         _agentScripts = transform.GetComponentsInChildren<AnimationInfo>();
 
-
         _dropDownRectAgents = new DropDownRect(new Rect(115, 20, 90, 300));
         _dropDownRectAnimNames = new DropDownRect(new Rect(210, 20, 90, 300));
 

@@ -59,8 +59,7 @@ public class MyKeyframe {
 ///
 /// </summary>
 public class AnimationInfo : MonoBehaviour {
-
-    public int StartKey, EndKey; //if animation is divided into parts, start and end keys define the boundaries of the animation sequence
+    
     public bool DisableLMA;
     public string CharacterName;
     
@@ -93,12 +92,6 @@ public class AnimationInfo : MonoBehaviour {
     public const float MaxdTheta = Mathf.PI / 6.0f; //Mathf.PI/20.0f;  //values in Liwei Zhao's thesis
     
 	
-    
-
-    List<float> _sArr = new List<float>();
-    List<float> _velArr = new List<float>();
-    List<float> _tppArr = new List<float>();
-
 	public float Fps;
 	public float AnimLength;
 	public KeyInfo[] Keys;
@@ -127,8 +120,7 @@ public class AnimationInfo : MonoBehaviour {
     //because editor does not work here we cannot get keyframe information
 	public List <int> GoalKeys = new List<int>() ;  //keeps the keyframe number (not actual index)  we need to include the start and end keyframes {0, 3, 5, 8};
     public List<float> GoalSpeeds = new List<float>();  
-    public int[] CurveKeys;  //determine the arm path curvature
-    public float[] MyKeyTimes;
+    public int[] CurveKeys;  //determine the arm path curvature    
     public KeyframeExtractor KeyExtractor;
 
     public float GoalThreshold = 0f; //0.1f; //funda?  why are we using this?
@@ -232,10 +224,6 @@ public class AnimationInfo : MonoBehaviour {
 
 
     void Awake() {
-        _sArr = new List<float>();
-        _velArr = new List<float>();
-        _tppArr = new List<float>();
-
         _torso = GetComponent<TorsoController>();
 
 
@@ -278,13 +266,9 @@ public class AnimationInfo : MonoBehaviour {
         AnimLength = GetComponent<Animation>()[AnimName].clip.length;		        
 		FrameCnt = Mathf.CeilToInt(Fps * AnimLength);
 
-
-
         AnimSpeed = 1f;
 
-        _velArr = new List<float>();
-        _tppArr = new List<float>();
-
+    
         GetComponent<IKAnimator>().DisableIK(); //so that it can sample correctly
 
         KeyExtractor = new KeyframeExtractor();
@@ -296,9 +280,6 @@ public class AnimationInfo : MonoBehaviour {
         LocalT = 0f;
         GlobalT = 0f;
 
-
-        //StartKey = 0;
-        // EndKey = FrameCnt - 1;
 
     }
 
@@ -315,7 +296,7 @@ public class AnimationInfo : MonoBehaviour {
                 Keys[i].EeVel[ind] = (Keys[i + 1].EePos[ind] - Keys[i - 1].EePos[ind]) / (Keys[i + 1].Time - Keys[i - 1].Time);
         }
 
-        int goalInd = 0;
+       
         GoalKeys.Clear();
         GoalKeys.Add(0);
 
@@ -324,7 +305,12 @@ public class AnimationInfo : MonoBehaviour {
 
         Keys[0].IsGoal = true;
 
+
+     
+
+
         //FUNDA: these don't work well
+        //int goalInd = 0;
         /*
         //find local minima
         for (int i = 1; i < Keys.Length - 1; i++) {
@@ -368,87 +354,24 @@ public class AnimationInfo : MonoBehaviour {
         //    }
         //}
 
-        GoalSpeeds.Add(0);
+
+        GoalSpeeds.Add(0);    
         GoalKeys.Add(Keys.Length-1);
         Keys[Keys.Length - 1].IsGoal = true;
     }
     
 	public void InitKeyPoints() {
 
-#if !EDITORMODE
-  
-        Keyframe[] frames = new Keyframe[FrameCnt]; //all frames
-        for (int i = 0; i < frames.Length; i++) {
-            frames[i] = new Keyframe();
-            frames[i].time = AnimLength * ((float)i / (FrameCnt - 1));
-            
-        }
-        GetComponent<Animation>().Play(AnimName);
-	
-    
-
-        //OR read prerecorded keys
-        Keys = new KeyInfo[frames.Length];
-        for (int i = 0; i < frames.Length; i++) {
-
-            Keys[i] = new KeyInfo();
-
-            GetComponent<Animation>()[AnimName].enabled = true;
-
-            GetComponent<Animation>()[AnimName].time = frames[i].time;
-            Keys[i].Time = GetComponent<Animation>()[AnimName].time;
-
-            // int frameInd = keyInds[i];
-            // Keys[i].FrameNo = frameInd;
-            //   animation[AnimName].time = frames[frameInd].time;
 
 
-            GetComponent<Animation>()[AnimName].enabled = true;
+        AnimationCurve xCurve;
 
-            GetComponent<Animation>().Sample();        
-
-            Keys[i].IsCurve = false;
-            //body chain and transformation arrays for the specific animation
-
-            BodyChainTorso = _torso.BodyChainToArray(_torso.Root); //needs to be updated for each keyframe
-            Keys[i].BodyPos = _torso.BodyPosArr(BodyChainTorso);
-            Keys[i].BodyRot = _torso.BodyRotArr(BodyChainTorso);
-            Keys[i].BodyLocalPos = _torso.BodyLocalPosArr(BodyChainTorso);
-            Keys[i].BodyLocalRot = _torso.BodyLocalRotArr(BodyChainTorso);
-
-            Keys[i].BodyVel = new Vector3[BodyChainTorso.Count];
-
-            //Hands
-            for (int ind = 0; ind < 2; ind++) {
-                Keys[i].ShoulderPos[ind] = Keys[i].ShoulderPosOrig[ind] = _torso.Shoulder[ind].position;
-                Keys[i].EePos[ind] = Keys[i].EePosOrig[ind] = _torso.Wrist[ind].position;
-
-            }
-            //Feet
-            for (int ind = 2; ind < 4; ind++) {
-                Keys[i].EePos[ind] = Keys[i].EePosOrig[ind] = _torso.Foot[ind - 2].position;
-            }
-
-            Keys[i].EePos[4] = Keys[i].EePosOrig[4] = _torso.Root.position;
-            Keys[i].RootForward = _torso.Root.forward;
-        }
-
-        if (AnimName.ToUpper().Contains("SALSA") || AnimName.ToUpper().Contains("BALLET") || AnimName.ToUpper().Contains("CUSTOMER4") || AnimName.ToUpper().Contains("WALK"))
-            AssignGoalKeys((int)EEType.RightFoot);
-        else
-            AssignGoalKeys((int)EEType.RightHand);
-
-        GetComponent<Animation>().Stop(AnimName);                 
-
-#else
-
-	    AnimationCurve xCurve;
-        
-       if(AnimName.ToUpper().Contains("SALSA"))
+        if(AnimName.ToUpper().Contains("SALSA")) //funda? how about walk?
             xCurve = AnimationUtility.GetEditorCurve(GetComponent<Animation>()[AnimName].clip, _torso.BodyPath[(int)BodyPart.FootR], typeof(Transform), "m_LocalRotation.x");
 
-       else
+        else
             xCurve = AnimationUtility.GetEditorCurve(GetComponent<Animation>()[AnimName].clip, _torso.BodyPath[(int)BodyPart.WristR], typeof(Transform), "m_LocalRotation.x");
+
 
 
         Keyframe[] frames = xCurve.keys;
@@ -458,11 +381,13 @@ public class AnimationInfo : MonoBehaviour {
 
 
         Keys = new KeyInfo[frames.Length];
-        //Sample at the key points
-        for (int i = 0; i < frames.Length; i++) {
-            Keys[i] = new KeyInfo();
 
-            GetComponent<Animation>()[AnimName].enabled = true;    
+
+        //Sample at the key points
+        for(int i = 0; i < frames.Length; i++) {
+                Keys[i] = new KeyInfo();
+
+            GetComponent<Animation>()[AnimName].enabled = true;
 
             GetComponent<Animation>()[AnimName].time = frames[i].time;
             Keys[i].Time = GetComponent<Animation>()[AnimName].time;
@@ -506,7 +431,6 @@ public class AnimationInfo : MonoBehaviour {
 
         GetComponent<Animation>().Stop(AnimName);
 
-#endif
        
 
 	}
@@ -574,7 +498,7 @@ public class AnimationInfo : MonoBehaviour {
         Quaternion pivotRot = Quaternion.identity;
         if(keyInd + 1 > Keys.Length - 1) {
             for (int i = 0; i < BodyChainTorso.Count; i++) {
-                BodyChainTorso[i].transform.localPosition = Keys[keyInd].BodyLocalPos[i];//were all local pos rot
+                BodyChainTorso[i].transform.localPosition = Keys[keyInd].BodyLocalPos[i]; //were all local pos rot
                 BodyChainTorso[i].transform.localRotation = Keys[keyInd].BodyLocalRot[i];
             }
      
@@ -763,10 +687,7 @@ public class AnimationInfo : MonoBehaviour {
             Debug.Log("Incorrect time coefficient");
             return -1;
         }
-      
-        
-        
-
+  
         float appTime = t * AnimLength;
         for(int i = 0; i < Keys.Length-1; i++) {
             if (Keys[i].Time <= appTime && Keys[i + 1].Time > appTime)
@@ -867,8 +788,7 @@ public class AnimationInfo : MonoBehaviour {
     /// Returns modified keypoint
     /// </summary>
     Vector3 ArmShape(int arm, Vector3 target, Vector3 shoulderPos, Vector3 rootForward) {
-        float rotTheta = 0f;
-        Vector3 centerEllipse;
+        float rotTheta = 0f;        
         //Transform target from world space to local EMOTE coordinates
         //	targetLocal = transform.InverseTransformPoint(target);	
         //Translate to world
@@ -882,8 +802,6 @@ public class AnimationInfo : MonoBehaviour {
 
         
 
-
-        
         // Convert to Emote coordinate system
         targetLocal = new Vector3(targetLocal.y, -targetLocal.z, targetLocal.x);
 
@@ -1096,9 +1014,6 @@ public class AnimationInfo : MonoBehaviour {
         else
             vel = s = 0f;
      
-        _velArr.Add(vel);
-        _tppArr.Add(tpp);
-
         
         return s;
 
@@ -1112,7 +1027,7 @@ public class AnimationInfo : MonoBehaviour {
         float t0, t1, ti, v0, v1;
         
         //No anticipation or overshoot except the first and the last keyframes
-        if (PrevGoalKeyInd == 0) {
+        if (PrevGoalKeyInd == 0) { //first
             t0 = T0;
             v0 = V0;
         }
@@ -1121,7 +1036,7 @@ public class AnimationInfo : MonoBehaviour {
             v0 = 0;
         }
 
-        if (PrevGoalKeyInd + 1 == GoalKeys.Count - 1) {
+        if (PrevGoalKeyInd + 1 == GoalKeys.Count - 1) { //last
             t1 = T1;
             v1 = V1;
         }
@@ -1165,8 +1080,8 @@ public class AnimationInfo : MonoBehaviour {
         }
 
         float s = TimingControl(t0, t1, ti, v0, v1, Tp);
-       
-        
+
+
         //map s into the whole spline
 
         GlobalT = (s * (NextGoal - PrevGoal) + PrevGoal) / AnimLength;
@@ -1217,148 +1132,8 @@ public class AnimationInfo : MonoBehaviour {
 
         ComputeUpdatedTimingParameters();
 
-
-        if (Tp == 0) {
-            _velArr.Clear();
-            _tppArr.Clear();
-        }
-        //Current velocity curve
-        GameObject velCurveCurr = GameObject.Find("VelCurveCurr");
-        if (velCurveCurr == null) {
-            return;
-        }
-        velCurveCurr.GetComponent<LineRenderer>().SetVertexCount(_velArr.Count);
-        for (int i = 0; i < _velArr.Count; i++) {
-            velCurveCurr.GetComponent<LineRenderer>().SetPosition(i, new Vector3(_tppArr[i], _velArr[i], 0));
-        }
-        //General velocity curve as in EMOTE
-        GameObject velCurveGen = GameObject.Find("VelCurveGeneral");
-        velCurveGen.GetComponent<LineRenderer>().SetVertexCount(5);
-
-        velCurveGen.GetComponent<LineRenderer>().SetPosition(0, new Vector3(0, 0, 0));
-        velCurveGen.GetComponent<LineRenderer>().SetPosition(1, new Vector3(T0, -V0, 0));
-        velCurveGen.GetComponent<LineRenderer>().SetPosition(2, new Vector3(Ti, _vi, 0));
-        velCurveGen.GetComponent<LineRenderer>().SetPosition(3, new Vector3(T1, -V1, 0));
-        velCurveGen.GetComponent<LineRenderer>().SetPosition(4, new Vector3(1, 0, 0));
-        /*velCurveGen.GetComponent<LineRenderer>().SetPosition(1, new Vector3( T0 / _animInfo.AnimSpeed, -V0, 0));
-        velCurveGen.GetComponent<LineRenderer>().SetPosition(2, new Vector3( Ti / _animInfo.AnimSpeed, _vi, 0));
-        velCurveGen.GetComponent<LineRenderer>().SetPosition(3, new Vector3( T1 / _animInfo.AnimSpeed, -V1, 0));
-        velCurveGen.GetComponent<LineRenderer>().SetPosition(4, new Vector3( 1 / _animInfo.AnimSpeed, 0, 0));
-        */
-
-       
-
         
     }
 
-    void OnDrawGizmos(){
-
-        
-         //Draw velocity and position
-        /*
-        Gizmos.color = Color.green;
-        Gizmos.DrawLine(Vector3.zero, new Vector3(0, Keys[0].EeVel[1].magnitude * 10, 0));
-        // for(int j = 1; j <= prevKeyInd; j++) {                    
-        for (int j = 1; j < Keys.Length - 2; j++) {
-            Gizmos.DrawLine(new Vector3(j - 1, Keys[j - 1].EeVel[1].magnitude * 10, 0), new Vector3(j, Keys[j].EeVel[1].magnitude * 10, 0));
-        }
-        Gizmos.color = Color.red;
-        Gizmos.DrawLine(Vector3.zero, new Vector3(0, Keys[0].EeVel[1].magnitude, 0));
-        // for(int j = 1; j <= prevKeyInd; j++) {                    
-        for (int j = 1; j < Keys.Length - 2; j++) {
-
-            Gizmos.DrawLine(new Vector3(j - 1, Keys[j - 1].EeVel[1].magnitude, 0), new Vector3(j, Keys[j].EeVel[1].magnitude, 0));
-        }
-        
-        */
-        //for(int j = 0; j < Keys.Length; j++) {            
-        //    //Gizmos.color = keyColor;
-        
-
-
-
-        //    if (Keys[j].IsGoal)
-        //        Gizmos.color = Color.red;
-
-
-
-        //    /*//Tangents -- SCALED DOWN!
-        //    Gizmos.color = Color.magenta;
-        //    Gizmos.DrawLine(SIee[1]._controlPoints[j].Point, SIee[1]._controlPoints[j].TangentI* 0.5f  + SIee[1]._controlPoints[j].Point);
-        //    Gizmos.color = Color.red;
-        //    Gizmos.DrawLine(SIee[1]._controlPoints[j].Point, SIee[1]._controlPoints[j].TangentO * 0.5f + SIee[1]._controlPoints[j].Point);
-        //    */
-
-        //    Gizmos.color = new Color(0, j / 10f, 1);//bluish
-        //    int stepCnt;
-        //    if (j < Keys.Length - 1)
-        //        stepCnt = (int)((Keys[j + 1].Time - Keys[j].Time) / 0.005f);
-        //    else
-        //        stepCnt = 1000;
-
-
-        //       //   for (int arm = 0; arm < 2; arm++) {
-
-        //       //      for (int i = 0; i < stepCnt; i++)
-        //       //          Gizmos.DrawSphere(SIee[arm].GetInterpolatedSplinePoint((float)i / stepCnt, j), 0.0008f);
-
-        //       //      Gizmos.DrawSphere(SIee[arm]._controlPoints[j].Point, 0.002f);
-        //       //  }
-
-        //       //  //Gizmos.DrawSphere(Keys[j].EePos[1], 0.002f);
-        //       //Gizmos.color = Color.yellow;
-        //       //  if(j + 1 < Keys.Length) 
-        //       //      Gizmos.DrawLine(Keys[j].EePos[1], Keys[j+1].EePos[1]);            
-                
-        //}
-
-         //Draw bounding box
-        //DEBUG
-       /* List<Transform> upperBody = _torso.BodyChainToArray(_torso.Spine); //needs to be updated for each keyframe
-        List<Vector3> posList = new List<Vector3>();
-        posList = _torso.BodyPosArr(upperBody);
-        BBox bb = ComputeBoundingBox(posList);
-        Gizmos.DrawLine(new Vector3(bb.Min.x, bb.Min.y, bb.Min.z), new Vector3(bb.Min.x, bb.Min.y, bb.Max.z));
-        Gizmos.DrawLine(new Vector3(bb.Min.x, bb.Min.y, bb.Max.z), new Vector3(bb.Min.x, bb.Max.y, bb.Max.z));
-        Gizmos.DrawLine(new Vector3(bb.Min.x, bb.Max.y, bb.Max.z), new Vector3(bb.Max.x, bb.Max.y, bb.Max.z));
-        Gizmos.DrawLine(new Vector3(bb.Max.x, bb.Max.y, bb.Max.z), new Vector3(bb.Max.x, bb.Max.y, bb.Min.z));
-        Gizmos.DrawLine(new Vector3(bb.Max.x, bb.Max.y, bb.Min.z), new Vector3(bb.Max.x, bb.Min.y, bb.Min.z));
-        Gizmos.DrawLine(new Vector3(bb.Max.x, bb.Min.y, bb.Min.z), new Vector3(bb.Min.x, bb.Min.y, bb.Min.z));
-
-
-        */
-
-
-    }
-
-    BBox ComputeBoundingBox(List<Vector3> posList) {
-       Vector3 min = posList[0];
-        Vector3 max = posList[0];
-        BBox bb = new BBox();
-
-        foreach (Vector3 v in posList) {
-            if (v.x < min.x)
-                min.x = v.x;
-            if (v.y < min.y)
-                min.y = v.y;
-            if (v.z < min.z)
-                min.z = v.z;
-
-
-            if (v.x > max.x)
-                max.x = v.x;
-            if (v.y > max.y)
-                max.y = v.y;
-            if (v.z > max.z)
-                max.z = v.z;
-        }
-
-
-        bb.Min = min;
-        bb.Max = max;
-
-        return bb;
-        
-    }
 }
 

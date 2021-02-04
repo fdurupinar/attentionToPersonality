@@ -39,7 +39,7 @@ public class GUIController : MonoBehaviour {
     protected void Play(AnimationInfo agent) {
 
         //agent.animation[agent.AnimName].wrapMode = WrapMode.ClampForever;
-        agent.GetComponent<Animation>()[agent.AnimName].wrapMode = WrapMode.Once;//WrapMode.Loop;
+        agent.GetComponent<Animation>()[agent.AnimName].wrapMode = WrapMode.Once;//WrapMode.Clamp;//WrapMode.Once;//WrapMode.Loop;
         agent.GetComponent<Animation>().Play(agent.AnimName);
         agent.GetComponent<Animation>().enabled = true;
 

@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 373543a391b5344a7bc75b1836b65007
 ModelImporter:
-  serializedVersion: 26
+  serializedVersion: 19300
   internalIDToNameTable:
   - first:
       74: 2728306629672911758
@@ -32,7 +32,7 @@ ModelImporter:
     second: Waving_Netural_02
   externalObjects: {}
   materials:
-    importMaterials: 1
+    materialImportMode: 1
     materialName: 0
     materialSearch: 1
     materialLocation: 1
@@ -95,35 +95,35 @@ ModelImporter:
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
   referencedClips:
-  - d53c4e7d39d0e493bae3a909d9f696be
   - 5e64bca4dcb7447f086ade36d3ae9dad
-  - 8be80854ae1b84b36aab7253f2e7a984
+  - d53c4e7d39d0e493bae3a909d9f696be
   - a731558a617b545eebdb868220f5c2fd
   - 14c80c4b1190d4267b974059191f80d0
+  - 8be80854ae1b84b36aab7253f2e7a984
+  - d3cd202dfc96d41edb513da103fab5c1
   - 855e000e01000419794804bda2614c84
-  - d8ffe2db3ee2247fbb2cd64a6a4ffabb
   - 039971fac9c604d13be88e479e1dcfe5
   - 711d898d768294ebeb4bde95e83be32f
-  - 40d06d5cb0ad24b6ba054f8ae6950860
+  - d8ffe2db3ee2247fbb2cd64a6a4ffabb
   - 8f1521aaba063453c80d5509c5673efa
   - a4fbe21401a544867a130e31c4a8deaf
-  - ce29cb7898d5d4ef5a2954d541730903
+  - 40d06d5cb0ad24b6ba054f8ae6950860
   - ca172c1fe97a54b0a893b6a24d4f380a
-  - 2d5ec9b8327f8471da9306916159fbde
+  - ce29cb7898d5d4ef5a2954d541730903
   - 2775e9969de99468d9efef316cdfd218
+  - 2d5ec9b8327f8471da9306916159fbde
   - 75d3a6d6626a0452199ea70a2d43c7ad
-  - e3060417866ad43ff98ea0fed0ee807a
   - 15b00cc97a4c64140bd354482f83fd08
-  - 96a68db7bc4f64926a6e567340fe7423
+  - e3060417866ad43ff98ea0fed0ee807a
   - a7c363ba8760345218b6c02a099d46fe
-  - 88276ee82df0542f78490bea9fea6f45
+  - 96a68db7bc4f64926a6e567340fe7423
   - f03092b9f66754707a6c4e3cbe10f1f6
-  - a44e50b034186406795ffd5a167a14fe
+  - 88276ee82df0542f78490bea9fea6f45
   - 5ae5944017f4148eba7e3ce53767276c
-  - 1523113fdc56841ffa244ac30a414ab9
+  - a44e50b034186406795ffd5a167a14fe
   - 122b23b998bdf4b3e83609522836eec1
+  - 1523113fdc56841ffa244ac30a414ab9
   importAnimation: 1
-  copyAvatar: 0
   humanDescription:
     serializedVersion: 3
     human: []
@@ -141,8 +141,10 @@ ModelImporter:
     hasExtraRoot: 1
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 1
   humanoidOversampling: 1
+  avatarSetup: 0
   additionalBone: 0
   userData: 
   assetBundleName: 

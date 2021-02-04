@@ -36,7 +36,7 @@ public class DriveParams {
 
 
     public  float SquashMag = 0f;
-    public  float SquashF = 0f; //breah frequench
+    public  float SquashF = 0f; //breath frequency
     public  float WbMag = 0f;
     public  float WxMag = 0f;
     public  float WtMag = 0f;
